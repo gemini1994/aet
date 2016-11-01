@@ -4,7 +4,7 @@
 #include <sys/time.h>
 #include <set>
 using namespace std;
-
+typedef unsigned long long uint64_t; 
 const int CACHE_LINE = 64; // Cache Line Size is 64kb
 // const int PGAP = 1024/64;
 const int MAXN = 20;
@@ -182,7 +182,8 @@ void calc_segment_missrate(const Segment & segment) {
     uint64_t segment_ways = segment.ends - segment.begins + 1;
     uint64_t segment_size = segment_ways * WAY_SIZE;
 
-    for (int wid : segment.workload) {
+    for (set<int>::iterator iter = segment.workload.begin();iter!=segment.workload.end();iter++) {
+	int wid = *iter;
         step[wid] = 1;
         ar[wid] = ((double)workload[wid].ways / segment_ways) * workload[wid].access_rate;
         ar_total += ar[wid];
@@ -192,9 +193,11 @@ void calc_segment_missrate(const Segment & segment) {
     uint64_t cur;
     for (aet = 1; aet<=1000000000; aet++) {
         cur = 0;
-        for (int wid : segment.workload) {
+        for (set<int>::iterator iter= segment.workload.begin();iter!=segment.workload.end();iter++) {
+	    int wid = *iter;
+	    sump[wid] += ((double)workload[wid].access_num - sum[wid]) / workload[wid].access_num;
             if ((int)(ar[wid] / ar_total * aet) > ct[wid]) {
-                sump[wid] += ((double)workload[wid].access_num - sum[wid]) / workload[wid].access_num;
+                
                 ct[wid]++;
                 if (ct[wid] > loc[wid]) {
                     if (++dom[wid]>domain) dom[wid] = 1,step[wid] *= 2;
@@ -209,7 +212,8 @@ void calc_segment_missrate(const Segment & segment) {
             break;
         }
     }
-    for (int wid : segment.workload) {
+    for (set<int>::iterator iter = segment.workload.begin();iter!=segment.workload.end();iter++) {
+	int wid = *iter;
         workload[wid].miss_rate += (((double)workload[wid].access_num - sum[wid]) / workload[wid].access_num) * segment_ways / workload[wid].ways; 
     }
 }
