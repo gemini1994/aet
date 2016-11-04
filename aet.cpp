@@ -5,15 +5,16 @@
 #include <set>
 using namespace std;
 typedef unsigned long long uint64_t; 
-const int CACHE_LINE = 64; // Cache Line Size is 64kb
+const uint64_t CACHE_LINE = 64; // Cache Line Size is 64kb
 // const int PGAP = 1024/64;
-const int MAXN = 20;
-const int MAXT = 10000+3;
-const int MAXH = 19999997;
-const int domain = 256;
+const uint64_t MAXN = 20;
+const uint64_t MAXT = 10000+3;
+const uint64_t MAXH = 19999997;
+const uint64_t domain = 256;
 // const int CacheLineSize = 30*1024*1024/64;
-const int WAY = 20;
-const int WAY_SIZE = 58 * 1024 * 1024 / WAY/ CACHE_LINE;
+const uint64_t WAY = 20;
+const uint64_t WAY_SIZE = (56320 << 10) / WAY / CACHE_LINE;
+const uint64_t L2_CACHE_SIZE = (5632 << 10) / WAY / CACHE_LINE;
 
 
 struct Node {
@@ -196,8 +197,7 @@ void calc_segment_missrate(const Segment & segment) {
         for (set<int>::iterator iter= segment.workload.begin();iter!=segment.workload.end();iter++) {
 	    int wid = *iter;
 	    sump[wid] += ((double)workload[wid].access_num - sum[wid]) / workload[wid].access_num;
-            if ((int)(ar[wid] / ar_total * aet) > ct[wid]) {
-                
+            if ((int)(ar[wid] / ar_total * aet) > ct[wid]) {       
                 ct[wid]++;
                 if (ct[wid] > loc[wid]) {
                     if (++dom[wid]>domain) dom[wid] = 1,step[wid] *= 2;
@@ -224,6 +224,24 @@ void solve() {
     }
 }
 
+void calc_access_rate(int i) {
+    double sum = 0; uint64_t T = 0;
+    double tot = 0;
+    double N = workload[i].access_num;
+    uint64_t step = 1; int dom = 0,dT = 0,loc = 0;
+    while (T<=N && tot/N<L2_CACHE_SIZE) {
+        tot += N-sum;
+        T++;
+        if (T>loc) {
+            if (++dom>domain) dom = 1,step *= 2;
+            loc += step;
+            dT++;
+        }
+        sum += 1.0 * workload[i].rtd[dT]/step;
+    }
+    workload[i].access_rate = 1.0*(N-sum)/N;
+}
+
 void segmentation() {
     set<int> current;
     set<int> tmp;
@@ -247,12 +265,18 @@ void segmentation() {
     }
 }
 
+bool need_calc_ar = false;
+
 int main(int argv, char **argc)
 {
-    workload_num = argv / 2;
+    workload_num = argv / 2 - 1;
+    if (argc[1][0] == '1') {
+        need_calc_ar = true;
+    } 
+
     for (int i=0; i<workload_num; i++) {
-        workload[i].name = strdup(argc[i*2+1]);
-        workload[i].allocation = strdup(argc[i*2+2]);
+        workload[i].name = strdup(argc[i*2+2]);
+        workload[i].allocation = strdup(argc[i*2+3]);
         workload[i].cos = strtouint64(workload[i].allocation);
         workload[i].ways = count_1s(workload[i].cos);
         workload[i].access_rate = 1;
@@ -269,6 +293,12 @@ int main(int argv, char **argc)
         fin = fopen(filename,"rb");
         init_rtd(i);
         fclose(fin);
+    }
+
+    if (need_calc_ar) {
+        for (int i=0; i<workload_num; i++) {
+            calc_access_rate(i);
+        }
     }
 
     solve();
