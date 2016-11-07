@@ -14,7 +14,7 @@ const uint64_t domain = 256;
 // const int CacheLineSize = 30*1024*1024/64;
 const uint64_t WAY = 20;
 const uint64_t WAY_SIZE = (56320 << 10) / WAY / CACHE_LINE;
-const uint64_t L2_CACHE_SIZE = (5632 << 10) / WAY / CACHE_LINE;
+const uint64_t L2_CACHE_SIZE = (256 << 10) / WAY / CACHE_LINE;
 
 
 struct Node {
@@ -186,7 +186,7 @@ void calc_segment_missrate(const Segment & segment) {
     for (set<int>::iterator iter = segment.workload.begin();iter!=segment.workload.end();iter++) {
 	int wid = *iter;
         step[wid] = 1;
-        ar[wid] = ((double)workload[wid].ways / segment_ways) * workload[wid].access_rate;
+        ar[wid] = (segment_ways / (double)workload[wid].ways) * workload[wid].access_rate;
         ar_total += ar[wid];
     }
 
@@ -197,7 +197,7 @@ void calc_segment_missrate(const Segment & segment) {
         for (set<int>::iterator iter= segment.workload.begin();iter!=segment.workload.end();iter++) {
 	    int wid = *iter;
 	    sump[wid] += ((double)workload[wid].access_num - sum[wid]) / workload[wid].access_num;
-            if ((int)(ar[wid] / ar_total * aet) > ct[wid]) {       
+            if ((int)(ar[wid] / ar_total * aet) >= ct[wid]) {       
                 ct[wid]++;
                 if (ct[wid] > loc[wid]) {
                     if (++dom[wid]>domain) dom[wid] = 1,step[wid] *= 2;
@@ -210,6 +210,7 @@ void calc_segment_missrate(const Segment & segment) {
         }
         if (cur > segment_size) {
             break;
+	    
         }
     }
     for (set<int>::iterator iter = segment.workload.begin();iter!=segment.workload.end();iter++) {
