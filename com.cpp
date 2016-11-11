@@ -118,7 +118,7 @@ void insert(uint64_t now, int idx) {
     hash_set[t] = tmp;
 }
 
-uint64_t find(uint64_t now, int idx = -1) {
+uint64_t find(uint64_t now) {
     int t = now % MAXH;
     Node *tmp = hash_set[t], *pre = NULL;
     while (tmp) {
@@ -189,14 +189,17 @@ void segmentation() {
                 tmp.insert(j);
             }
         }
-        if (i == 0 || tmp != current) {
+        if (tmp.size() == 0) {
+            continue;
+        }
+        if (segment_num == 0 || tmp != current) {
             segment[segment_num].begins = i;
             segment[segment_num].ends = i;
             segment[segment_num].workload = tmp;
             current = tmp;
             segment_num++;
         } else {
-            segment[segment_num-1].ends = i;
+            segment[segment_num - 1].ends = i;
         }
     }
 }
