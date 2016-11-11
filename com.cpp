@@ -303,7 +303,7 @@ int main(int argv, char **argc) {
         printf("%s\t%s\t%lf\t%lf:", workload[i].name, workload[i].allocation,
                workload[i].access_rate, workload[i].miss_rate);
         for (int j = 0; j < segment_num; j++) {
-            printf("\t%ld", occupancy[i][j]);
+            printf("\t%llu", occupancy[i][j]);
         }
         printf("\n");
     }
