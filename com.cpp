@@ -284,13 +284,6 @@ int main(int argv, char **argc) {
 
     segmentation();
 
-    for (int i = 0; i < workload_num; i++) {
-        calc_mrc(i);
-        if (need_calc_ar) {
-            workload[i].access_rate = workload[i].mrc[L2_CACHE_SIZE / BLOCK];
-        }
-    }
-
     init_occupancy();
 
     // iteration process
