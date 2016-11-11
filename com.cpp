@@ -196,7 +196,7 @@ void segmentation() {
             current = tmp;
             segment_num++;
         } else {
-            segment[segment_num].ends = i;
+            segment[segment_num-1].ends = i;
         }
     }
 }
