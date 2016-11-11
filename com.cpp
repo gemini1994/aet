@@ -142,7 +142,6 @@ void calc_mrc(int i) {
     double sum = 0;
     uint64_t T = 0;
     double tot = 0;
-    double N = workload[i].access_num;
     uint64_t step = 1;
     int dom = 0, dT = 0, loc = 0;
     uint64_t addr;
@@ -161,6 +160,9 @@ void calc_mrc(int i) {
         insert(addr, i);
     }
 
+    double N = workload[i].access_num;
+    //for(int i = 0;i<MAXT;i++)
+    	//printf("rtd[%d]: %d\n",i,rtd[i]);
     workload[i].mrc[0] = 1;
     for (int c = 1; c < MAXS; c++) {
         while (T <= N && tot / N < (c * BLOCK)) {
@@ -175,6 +177,7 @@ void calc_mrc(int i) {
             sum += 1.0 * rtd[dT] / step;
         }
         workload[i].mrc[c] = 1.0 * (N - sum) / N;
+        //printf("workload[%d].mrc[%d]:  %lf\n",i,c,workload[i].mrc[c]);
     }
 }
 
@@ -229,6 +232,7 @@ void o2m() {
             occ += occupancy[i][j];
         }
         workload[i].miss_rate = workload[i].mrc[occ];
+        //printf("in o2m workload[%d] occ = %d, miss_rate: %lf \n",i,occ,workload[i].miss_rate);
     }
 }
 
@@ -242,10 +246,12 @@ void m2o() {
         for (set<int>::iterator iter = segment[i].workload.begin();
             iter != segment[i].workload.end(); iter++) {
             int wid = *iter;
-            miss_num[wid] = (uint64_t) workload[wid].miss_rate * workload[wid].access_rate * accesses * segment_ways / workload[wid].ways;
+            miss_num[wid] = (uint64_t)(workload[wid].miss_rate * workload[wid].access_rate * accesses * segment_ways / workload[wid].ways);
             miss_num_total += miss_num[wid];
+	    //printf("workload[%d].miss_rate: %lf, workload[%d].access_rate: %lf,accesses: %d, segment_ways: %d, workload[%d].ways: %d, miss_num[%d]: %d\n",wid,workload[wid].miss_rate,wid,workload[wid].access_rate,accesses,segment_ways,wid,workload[wid].ways,wid,miss_num[wid]);
         }
-        
+        //printf("miss_num_total: %d\n",miss_num_total);
+
         for (set<int>::iterator iter = segment[i].workload.begin();
             iter != segment[i].workload.end(); iter++) {
             int wid = *iter;
