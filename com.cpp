@@ -5,16 +5,16 @@
 #include <set>
 using namespace std;
 typedef unsigned long long uint64_t;
-const uint64_t CACHE_LINE = 64; // Cache Line Size is 64kb
-// const int PGAP = 1024/64;
+const uint64_t CACHE_LINE = 64; // Cache Line Size is 64B
 const uint64_t MAXN = 20;
 const uint64_t MAXT = 10000 + 3;
 const uint64_t MAXH = 19999997;
 const uint64_t domain = 256;
-// const int CacheLineSize = 30*1024*1024/64;
 const uint64_t WAY = 20;
 const uint64_t WAY_SIZE = (56320 << 10) / WAY / CACHE_LINE;
-const uint64_t L2_CACHE_SIZE = (256 << 10) / WAY / CACHE_LINE;
+const uint64_t L2_CACHE_SIZE = (256 << 10) / CACHE_LINE;
+const uint64_t BLOCK = 16; // 1 block = 16 cache lines
+const uint64_t MAXS = WAY_SIZE * WAY / BLOCK; // granularity is 1KB, (16 cache lines)
 
 struct Node {
     uint64_t addr, label;
@@ -39,17 +39,21 @@ struct Workload {
     int ways;
     double access_rate, miss_rate;
     uint64_t access_num;
-    uint64_t rtd[MAXT];
+    double mrc[MAXS];
 };
 
 Node *hash_set[MAXH];
+uint64_t rtd[MAXT];
 FILE *fin, *fout;
 uint64_t m;
 
-Segment segment[WAY + 1];
+Segment segment[WAY+1];
 int segment_num = 0;
 Workload workload[MAXN];
 int workload_num;
+uint64_t occupancy[MAXN][WAY+1];
+
+uint64_t accesses;
 
 uint64_t strtouint64(const char *s) {
     const char *str = s;
@@ -133,124 +137,45 @@ uint64_t find(uint64_t now, int idx = -1) {
     return 0;
 }
 
-void init_rtd(int idx) {
-    memset(hash_set, 0, sizeof(hash_set));
-    workload[idx].access_num = 0;
-    uint64_t addr;
-    TNode data;
-    while (fread(&data, sizeof(data), 1, fin)) {
-        addr = data.offset >> 6;
-        workload[idx].access_num++;
-        // if (n%100000000==0) printf("%lld\n",n);
-        uint64_t t = find(addr);
-        if (t)
-            workload[idx]
-                .rtd[domain_value_to_index(workload[idx].access_num - t)]++;
-        insert(addr, idx);
-    }
-}
 
-// void solve() {
-//     double sum = 0; uint64_t T = 0;
-//     double tot = 0;
-//     double N = n;
-//     uint64_t step = 1; int dom = 0,dT = 0,loc = 0;
-//     m = CacheLineSize;
-//     for (uint64_t c = 1; c<=m; c++) {
-//         while (T<=n && tot/N<c) {
-//             tot += N-sum;
-//             T++;
-//             if (T>loc) {
-//                 if (++dom>domain) dom = 1,step *= 2;
-//                 loc += step;
-//                 dT++;
-//             }
-//             sum += 1.0*rtd[dT]/step;
-//         }
-//         //ans[c] = 1.0*(N-sum)/N;
-//         if (c%PGAP==0) fprintf(fout,"%.6lf\n",1.0*(N-sum)/N);
-//     }
-// }
-
-void calc_segment_missrate(const Segment &segment) {
-    double ar[MAXN];
-    double ar_total = 0;
-    uint64_t step[MAXN];
-    int dom[MAXN] = {0}, dt[MAXN] = {0}, loc[MAXN] = {0};
-    double sum[MAXN] = {0}, sump[MAXN] = {0};
-    uint64_t ct[MAXN] = {0};
-    uint64_t segment_ways = segment.ends - segment.begins + 1;
-    uint64_t segment_size = segment_ways * WAY_SIZE;
-
-    for (set<int>::iterator iter = segment.workload.begin();
-         iter != segment.workload.end(); iter++) {
-        int wid = *iter;
-        step[wid] = 1;
-        ar[wid] = (segment_ways / (double)workload[wid].ways) *
-                  workload[wid].access_rate;
-        ar_total += ar[wid];
-    }
-
-    uint64_t aet;
-    uint64_t cur;
-    for (aet = 1; aet <= 1000000000; aet++) {
-        cur = 0;
-        for (set<int>::iterator iter = segment.workload.begin();
-             iter != segment.workload.end(); iter++) {
-            int wid = *iter;
-            sump[wid] += ((double)workload[wid].access_num - sum[wid]) /
-                         workload[wid].access_num;
-            if ((int)(ar[wid] / ar_total * aet) >= ct[wid]) {
-                ct[wid]++;
-                if (ct[wid] > loc[wid]) {
-                    if (++dom[wid] > domain)
-                        dom[wid] = 1, step[wid] *= 2;
-                    loc[wid] += step[wid];
-                    dt[wid]++;
-                }
-                sum[wid] += (double)workload[wid].rtd[dt[wid]] / step[wid];
-            }
-            cur += sump[wid] * ar[wid] / ar_total;
-        }
-        if (cur > segment_size) {
-            break;
-        }
-    }
-    for (set<int>::iterator iter = segment.workload.begin();
-         iter != segment.workload.end(); iter++) {
-        int wid = *iter;
-        workload[wid].miss_rate +=
-            (((double)workload[wid].access_num - sum[wid]) /
-             workload[wid].access_num) *
-            segment_ways / workload[wid].ways;
-    }
-}
-
-void solve() {
-    for (int i = 1; i <= segment_num; i++) {
-        calc_segment_missrate(segment[i]);
-    }
-}
-
-void calc_access_rate(int i) {
+void calc_mrc(int i) {
     double sum = 0;
     uint64_t T = 0;
     double tot = 0;
     double N = workload[i].access_num;
     uint64_t step = 1;
     int dom = 0, dT = 0, loc = 0;
-    while (T <= N && tot / N < L2_CACHE_SIZE) {
-        tot += N - sum;
-        T++;
-        if (T > loc) {
-            if (++dom > domain)
-                dom = 1, step *= 2;
-            loc += step;
-            dT++;
-        }
-        sum += 1.0 * workload[i].rtd[dT] / step;
+    uint64_t addr;
+    TNode data;
+
+    memset(hash_set, 0, sizeof(hash_set));
+    memset(rtd, 0, sizeof(rtd));
+    workload[i].access_num = 0;
+
+    while (fread(&data, sizeof(data), 1, fin)) {
+        addr = data.offset >> 6;
+        workload[i].access_num++;
+        uint64_t t = find(addr);
+        if (t)
+            rtd[domain_value_to_index(workload[i].access_num - t)]++;
+        insert(addr, i);
     }
-    workload[i].access_rate = 1.0 * (N - sum) / N;
+
+    workload[i].mrc[0] = 1;
+    for (int c = 1; c < MAXS; c++) {
+        while (T <= N && tot / N < (c * BLOCK)) {
+            tot += N - sum;
+            T++;
+            if (T > loc) {
+                if (++dom > domain)
+                    dom = 1, step *= 2;
+                loc += step;
+                dT++;
+            }
+            sum += 1.0 * rtd[dT] / step;
+        }
+        workload[i].mrc[c] = 1.0 * (N - sum) / N;
+    }
 }
 
 void segmentation() {
@@ -265,18 +190,70 @@ void segmentation() {
             }
         }
         if (i == 0 || tmp != current) {
-            segment_num++;
             segment[segment_num].begins = i;
             segment[segment_num].ends = i;
             segment[segment_num].workload = tmp;
             current = tmp;
+            segment_num++;
         } else {
             segment[segment_num].ends = i;
         }
     }
 }
 
+void init_occupancy() {
+    for (int i = 0; i < segment_num; i++) {
+        uint64_t segment_ways = segment[i].ends - segment[i].begins + 1;
+        uint64_t segment_blocks = segment_ways * WAY_SIZE / BLOCK;
+        uint64_t remain_num = segment[i].workload.size();
+        uint64_t blocks = segment_blocks / remain_num, remains = segment_blocks % remain_num;
+        
+        for (set<int>::iterator iter = segment[i].workload.begin();
+            iter != segment[i].workload.end(); iter++) {
+            int wid = *iter;
+            if (remain_num == remains)
+                blocks ++;
+            occupancy[wid][i] = blocks;
+            remain_num --;
+        }
+    }
+}
+
+void o2m() {
+    for (int i = 0; i < workload_num; i++) {
+        uint64_t occ = 0;
+        for (int j = 0; j < segment_num; j++) {
+            occ += occupancy[i][j];
+        }
+        workload[i].miss_rate = workload[i].mrc[occ];
+    }
+}
+
+
+void m2o() {
+    for (int i = 0; i < segment_num; i++) {
+        uint64_t segment_ways = segment[i].ends - segment[i].begins + 1;
+        uint64_t segment_blocks = segment_ways * WAY_SIZE / BLOCK;
+        uint64_t miss_num[MAXN], miss_num_total = 0;
+
+        for (set<int>::iterator iter = segment[i].workload.begin();
+            iter != segment[i].workload.end(); iter++) {
+            int wid = *iter;
+            miss_num[wid] = (uint64_t) workload[wid].miss_rate * workload[wid].access_rate * accesses * segment_ways / workload[wid].ways;
+            miss_num_total += miss_num[wid];
+        }
+        
+        for (set<int>::iterator iter = segment[i].workload.begin();
+            iter != segment[i].workload.end(); iter++) {
+            int wid = *iter;
+            occupancy[wid][i] = occupancy[wid][i] + miss_num[wid] * (segment_blocks - occupancy[wid][i]) / segment_blocks 
+                                - (miss_num_total - miss_num[wid]) * occupancy[wid][i] / segment_blocks; 
+        }
+    }
+}
+
 bool need_calc_ar = false;
+char filename[100];
 
 int main(int argv, char **argc) {
     workload_num = argv / 2 - 1;
@@ -289,33 +266,46 @@ int main(int argv, char **argc) {
         workload[i].allocation = strdup(argc[i * 2 + 3]);
         workload[i].cos = strtouint64(workload[i].allocation);
         workload[i].ways = count_1s(workload[i].cos);
-        workload[i].access_rate = 1;
         workload[i].miss_rate = 0;
-        memset(workload[i].rtd, 0, sizeof(workload[i].rtd));
+        strcpy(filename, workload[i].name);
+        strcat(filename, ".ref");
+        fin = fopen(filename, "rb");
+        calc_mrc(i);
+        if (need_calc_ar) {
+            workload[i].access_rate = workload[i].mrc[L2_CACHE_SIZE / BLOCK];
+        } else {
+            workload[i].access_rate = 1;
+        }
+        fclose(fin);
     }
 
     segmentation();
 
     for (int i = 0; i < workload_num; i++) {
-        char filename[100];
-        strcpy(filename, workload[i].name);
-        strcat(filename, ".ref");
-        fin = fopen(filename, "rb");
-        init_rtd(i);
-        fclose(fin);
-    }
-
-    if (need_calc_ar) {
-        for (int i = 0; i < workload_num; i++) {
-            calc_access_rate(i);
+        calc_mrc(i);
+        if (need_calc_ar) {
+            workload[i].access_rate = workload[i].mrc[L2_CACHE_SIZE / BLOCK];
         }
     }
 
-    solve();
+    init_occupancy();
+
+    // iteration process
+    for (accesses = MAXS; accesses >= 100; accesses -= 10) {
+        o2m();
+        m2o();
+    }
+    
+    o2m();
+
 
     for (int i = 0; i < workload_num; i++) {
-        printf("%s\t%s\t%lf\t%lf\n", workload[i].name, workload[i].allocation,
+        printf("%s\t%s\t%lf\t%lf:", workload[i].name, workload[i].allocation,
                workload[i].access_rate, workload[i].miss_rate);
+        for (int j = 0; j < segment_num; j++) {
+            printf("\t%ld", occupancy[i][j]);
+        }
+        printf("\n");
     }
 
     // sprintf(filename,"aetcount.txt");
