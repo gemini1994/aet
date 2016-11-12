@@ -137,6 +137,11 @@ uint64_t find(uint64_t now) {
     return 0;
 }
 
+void get_mrc(int i){
+    for(int c = 0; c < MAXS; c++){
+	fscanf(fin,"%lf",&workload[i].mrc[c]);
+    }
+}
 
 void calc_mrc(int i) {
     double sum = 0;
@@ -277,9 +282,10 @@ int main(int argv, char **argc) {
         workload[i].ways = count_1s(workload[i].cos);
         workload[i].miss_rate = 0;
         strcpy(filename, workload[i].name);
-        strcat(filename, ".ref");
+        strcat(filename, ".txt");
         fin = fopen(filename, "rb");
-        calc_mrc(i);
+        //calc_mrc(i);
+	get_mrc(i);
         if (need_calc_ar) {
             workload[i].access_rate = workload[i].mrc[L2_CACHE_SIZE / BLOCK];
         } else {
