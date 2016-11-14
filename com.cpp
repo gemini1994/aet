@@ -138,9 +138,16 @@ uint64_t find(uint64_t now) {
 }
 
 void get_mrc(int i){
-    for(int c = 0; c < MAXS; c++){
-	fscanf(fin,"%lf",&workload[i].mrc[c]);
+    int c = 0;
+    double pre = 0;
+    for(; c < MAXS; c++){
+	if(fscanf(fin,"%lf",&workload[i].mrc[c])>0);
+        else {
+	    pre = workload[i].mrc[c-1];
+	    break;
+	}
     }
+    for(; c < MAXS; c++) workload[i].mrc[c] = pre;
 }
 
 void calc_mrc(int i) {
@@ -218,7 +225,7 @@ void init_occupancy() {
         uint64_t segment_blocks = segment_ways * WAY_SIZE / BLOCK;
         uint64_t remain_num = segment[i].workload.size();
         uint64_t blocks = segment_blocks / remain_num, remains = segment_blocks % remain_num;
-        
+
         for (set<int>::iterator iter = segment[i].workload.begin();
             iter != segment[i].workload.end(); iter++) {
             int wid = *iter;
@@ -260,8 +267,8 @@ void m2o() {
         for (set<int>::iterator iter = segment[i].workload.begin();
             iter != segment[i].workload.end(); iter++) {
             int wid = *iter;
-            occupancy[wid][i] = occupancy[wid][i] + miss_num[wid] * (segment_blocks - occupancy[wid][i]) / segment_blocks 
-                                - (miss_num_total - miss_num[wid]) * occupancy[wid][i] / segment_blocks; 
+            occupancy[wid][i] = occupancy[wid][i] + miss_num[wid] * (segment_blocks - occupancy[wid][i]) / segment_blocks
+                                - (miss_num_total - miss_num[wid]) * occupancy[wid][i] / segment_blocks;
         }
     }
 }
@@ -285,7 +292,7 @@ int main(int argv, char **argc) {
         strcat(filename, ".txt");
         fin = fopen(filename, "rb");
         //calc_mrc(i);
-	get_mrc(i);
+    	get_mrc(i);
         if (need_calc_ar) {
             workload[i].access_rate = workload[i].mrc[L2_CACHE_SIZE / BLOCK];
         } else {
@@ -293,19 +300,14 @@ int main(int argv, char **argc) {
         }
         fclose(fin);
     }
-
     segmentation();
-
     init_occupancy();
-
     // iteration process
-    for (accesses = MAXS; accesses >= 100; accesses -= 10) {
+    for (accesses = 1000; accesses >= 100; accesses -= 1) {
         o2m();
         m2o();
     }
-    
     o2m();
-
 
     for (int i = 0; i < workload_num; i++) {
         printf("%s\t%s\t%lf\t%lf:", workload[i].name, workload[i].allocation,
