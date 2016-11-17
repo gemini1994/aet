@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
+#include<memory.h>
 
 using namespace std;
 
@@ -11,11 +12,13 @@ int main(int argv, char** argc){
     }
     int workload_num = 0;
     int c = 0;
-    double *miss;
-    double *occ;
+    long double *miss;
+    long double *occ;
 
-    miss = new double [workload_num];
-    occ = new double [workload_num];
+    miss = new long double [workload_num];
+    occ = new long double [workload_num];
+    memset(miss,0,sizeof(long double)*workload_num);
+    memset(occ,0,sizeof(long double)*workload_num);
 
     FILE* fin;
     char* filename = strdup(argc[2]);
@@ -56,6 +59,7 @@ int main(int argv, char** argc){
             m = strtok(NULL," \t");//miss1
             o = strtok(NULL," \t");//llc1
             m = strtok(m,"k");
+	printf("%lf %lf\n",atof(m),atof(o));
             miss[i] += atof(m);
             occ[i] += atof(o);
         }
@@ -64,6 +68,6 @@ int main(int argv, char** argc){
     }
     printf("OK\n");
     for(int i = 0; i < workload_num; i++){
-        printf("miss%d: %lfk, llc%d: %lfKB\n",i,miss[i]/c,i,occ[i]/c);
+        printf("miss%d: %llfk, llc%d: %llfKB\n",i,miss[i]/c,i,occ[i]/c);
     }
 }
