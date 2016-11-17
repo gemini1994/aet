@@ -40,6 +40,9 @@ struct Workload {
     double access_rate, miss_rate;
     uint64_t access_num;
     double mrc[MAXS];
+    double occ;
+    uint64_t occ_lbound;
+    uint64_t occ_rbound;
 };
 
 Node *hash_set[MAXH];
@@ -51,7 +54,7 @@ Segment segment[WAY+1];
 int segment_num = 0;
 Workload workload[MAXN];
 int workload_num;
-uint64_t occupancy[MAXN][WAY+1];
+double occupancy[MAXN][WAY+1];
 
 uint64_t accesses;
 
@@ -239,11 +242,12 @@ void init_occupancy() {
 
 void o2m() {
     for (int i = 0; i < workload_num; i++) {
-        uint64_t occ = 0;
+        double occ = 0;
         for (int j = 0; j < segment_num; j++) {
             occ += occupancy[i][j];
         }
-        workload[i].miss_rate = workload[i].mrc[occ];
+        workload[i].occ = occ;
+        workload[i].miss_rate = workload[i].mrc[(uint64_t)occ];
         //printf("in o2m workload[%d] occ = %d, miss_rate: %lf \n",i,occ,workload[i].miss_rate);
     }
 }
@@ -253,12 +257,13 @@ void m2o() {
     for (int i = 0; i < segment_num; i++) {
         uint64_t segment_ways = segment[i].ends - segment[i].begins + 1;
         uint64_t segment_blocks = segment_ways * WAY_SIZE / BLOCK;
-        uint64_t miss_num[MAXN], miss_num_total = 0;
+        double miss_num[MAXN], miss_num_total = 0;
 
         for (set<int>::iterator iter = segment[i].workload.begin();
             iter != segment[i].workload.end(); iter++) {
             int wid = *iter;
-            miss_num[wid] = (uint64_t)(workload[wid].miss_rate * workload[wid].access_rate * accesses * segment_ways / workload[wid].ways);
+            miss_num[wid] = (workload[wid].miss_rate * workload[wid].access_rate * accesses * segment_ways / workload[wid].ways);
+            //printf("miss_num %lf\n",miss_num[wid]);
             miss_num_total += miss_num[wid];
 	    //printf("workload[%d].miss_rate: %lf, workload[%d].access_rate: %lf,accesses: %d, segment_ways: %d, workload[%d].ways: %d, miss_num[%d]: %d\n",wid,workload[wid].miss_rate,wid,workload[wid].access_rate,accesses,segment_ways,wid,workload[wid].ways,wid,miss_num[wid]);
         }
@@ -283,6 +288,7 @@ int main(int argv, char **argc) {
     }
 
     for (int i = 0; i < workload_num; i++) {
+        workload[i].occ = 0;
         workload[i].name = strdup(argc[i * 2 + 2]);
         workload[i].allocation = strdup(argc[i * 2 + 3]);
         workload[i].cos = strtouint64(workload[i].allocation);
@@ -303,19 +309,32 @@ int main(int argv, char **argc) {
     segmentation();
     init_occupancy();
     // iteration process
+    /*
     for (accesses = 1000; accesses >= 100; accesses -= 1) {
         o2m();
         m2o();
     }
+    */
+    accesses = 100;
+    for(int i =0; i < 500; i++){
+        o2m();
+        m2o();
+        for( int j = 0; j< workload_num; j++ ){
+            //printf("%lf  ",workload[j].occ);
+        }
+        //printf("\n");
+    }
     o2m();
 
     for (int i = 0; i < workload_num; i++) {
-        printf("%s\t%s\t%lf\t%lf:", workload[i].name, workload[i].allocation,
-               workload[i].access_rate, workload[i].miss_rate);
+        printf("%s\t%s\t%lf\t%lf\t%lf\n", workload[i].name, workload[i].allocation,
+               workload[i].access_rate, workload[i].miss_rate,workload[i].occ);
+        /*
         for (int j = 0; j < segment_num; j++) {
             printf("\t%llu", occupancy[i][j]);
         }
         printf("\n");
+        */
     }
 
     // sprintf(filename,"aetcount.txt");
