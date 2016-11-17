@@ -12,18 +12,17 @@ int main(int argv, char** argc){
     }
     int workload_num = 0;
     int c = 0;
-    long double *miss;
-    long double *occ;
-
-    miss = new long double [workload_num];
-    occ = new long double [workload_num];
-    memset(miss,0,sizeof(long double)*workload_num);
-    memset(occ,0,sizeof(long double)*workload_num);
-
+    double *miss;
+    double *occ;
     FILE* fin;
     char* filename = strdup(argc[2]);
     workload_num = atoi(argc[1]);
     fin = fopen(filename,"rt");
+    miss = new double [workload_num];
+    occ = new double [workload_num];
+
+    memset(miss,0,sizeof(double)*workload_num);
+    memset(occ,0,sizeof(double)*workload_num);
 
     if(fin == NULL){
         printf("file not exit\n");
@@ -59,15 +58,16 @@ int main(int argv, char** argc){
             m = strtok(NULL," \t");//miss1
             o = strtok(NULL," \t");//llc1
             m = strtok(m,"k");
-	printf("%lf %lf\n",atof(m),atof(o));
-            miss[i] += atof(m);
-            occ[i] += atof(o);
+            miss[i] = (miss[i]*(c-1) + atof(m))/c;
+            occ[i] = (occ[i]*(c-1) + atof(o))/c;
         }
         getline(&buffer,&len,fin);
-        //printf("%lf\n",miss1);
     }
-    printf("OK\n");
+
     for(int i = 0; i < workload_num; i++){
-        printf("miss%d: %llfk, llc%d: %llfKB\n",i,miss[i]/c,i,occ[i]/c);
+        printf("miss%d: %lfk, llc%d: %lfKB\n",i,miss[i],i,occ[i]);
     }
+    fclose(fin);
+    delete miss;
+    delete occ;
 }
