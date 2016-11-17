@@ -49,15 +49,15 @@ int main(int argv, char** argc){
         getline(&buffer,&len,fin);
 
         for(int i = 0; i < workload_num; i++){
-        getline(&buffer,&len,fin);
-        printf("%s",buffer);
-        temp = strtok(buffer," \t");
-        temp = strtok(NULL," \t");
-        m = strtok(NULL," \t");//miss1
-        o = strtok(NULL," \t");//llc1
-        m = strtok(m,"k");
-        miss[i] += atof(m);
-        occ[i] += atof(o);
+            getline(&buffer,&len,fin);
+            //printf("%s",buffer);
+            temp = strtok(buffer," \t");
+            temp = strtok(NULL," \t");
+            m = strtok(NULL," \t");//miss1
+            o = strtok(NULL," \t");//llc1
+            m = strtok(m,"k");
+            miss[i] += atof(m);
+            occ[i] += atof(o);
         }
         getline(&buffer,&len,fin);
         //printf("%lf\n",miss1);
