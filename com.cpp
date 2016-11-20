@@ -16,6 +16,12 @@ const uint64_t L2_CACHE_SIZE = (256 << 10) / CACHE_LINE;
 const uint64_t BLOCK = 16; // 1 block = 16 cache lines
 const uint64_t MAXS = WAY_SIZE * WAY / BLOCK; // granularity is 1KB, (16 cache lines)
 
+struct Benchmark{
+    char *name;
+    double access_rate;
+    //Benchmark()
+} *benchmarks[8];
+
 struct Node {
     uint64_t addr, label;
     Node *nxt;
@@ -222,6 +228,7 @@ void segmentation() {
     }
 }
 
+/*
 void init_occupancy() {
     for (int i = 0; i < segment_num; i++) {
         uint64_t segment_ways = segment[i].ends - segment[i].begins + 1;
@@ -236,6 +243,19 @@ void init_occupancy() {
                 blocks ++;
             occupancy[wid][i] = blocks;
             remain_num --;
+        }
+    }
+}
+*/
+void init_occupancy() {
+    for (int i = 0; i < segment_num; i++) {
+        uint64_t segment_ways = segment[i].ends - segment[i].begins + 1;
+        uint64_t segment_blocks = segment_ways * WAY_SIZE / BLOCK;
+
+        for (set<int>::iterator iter = segment[i].workload.begin();
+            iter != segment[i].workload.end(); iter++) {
+            int wid = *iter;
+            occupancy[wid][i] = (double)segment_blocks/segment[i].workload.size();
         }
     }
 }
@@ -315,20 +335,25 @@ int main(int argv, char **argc) {
         m2o();
     }
     */
-    accesses = 100;
-    for(int i =0; i < 500; i++){
+    accesses = 500;
+    for(int i =0; i < 2000; i++){
         o2m();
         m2o();
+	/*
         for( int j = 0; j< workload_num; j++ ){
-            //printf("%lf  ",workload[j].occ);
+            if(j==0)printf("%d\n",(int)workload[j].occ);
         }
+	*/
         //printf("\n");
+	if(i%10 == 0) accesses--;
     }
     o2m();
 
+    double total_miss_rate = 0;
     for (int i = 0; i < workload_num; i++) {
-        printf("%s\t%s\t%lf\t%lf\t%lf\n", workload[i].name, workload[i].allocation,
-               workload[i].access_rate, workload[i].miss_rate,workload[i].occ);
+	total_miss_rate += workload[i].miss_rate;
+        //printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name, workload[i].allocation, workload[i].access_rate, workload[i].miss_rate,workload[i].occ);
+	if(i==workload_num-1) printf("total miss rate: %lf\n",total_miss_rate);
         /*
         for (int j = 0; j < segment_num; j++) {
             printf("\t%llu", occupancy[i][j]);
