@@ -306,57 +306,56 @@ void m2o() {
 
 
 char* ull2BinaryStr(uint64_t cos){
+    char temp[256];
     char *s = new char[256];
     int i = 0;
     while(cos){
-        s[i] = cos%2+'0';
+        temp[i] = cos%2+'0';
         cos/=2;
         i++;
     }
+    for(int j=0;j<i;j++) s[j] = temp[i-j-1];
     s[i] = 0;
     return s;
 }
 
-//direction: 1 right expand, 2 right reduce, 3 left expand, 4 left reduce
+//direction: 0 right expand, 1 right reduce, 2 left expand, 3 left reduce
 int modify_cos(int index, int direction){// return pre_value
     char *s = ull2BinaryStr(workload[index].cos);
-    //printf("%s\n",s);
+    int len = strlen(s);
+    printf("%d %d %s\n",index,direction,s);
     int pre_value = workload[index].cos;
-
-    if((strlen(s)==MAXN && direction==3)||(strlen(s)==0&&(direction==2||direction==4))||(s[MAXN-1]=='1'&&direction==1)) return pre_value;
-    if(direction==1){
+    printf("%d\n",workload[index].cos);
+    if((len==MAXN && direction==2)||(len==0&&(direction==1||direction==3))||(s[MAXN-1]=='1'&&direction==0)) return pre_value;
+    if(direction==0){
         for(int i=0; i<MAXN-1; i++){
             if(s[i]=='1'&&s[i+1]=='0'){
-                workload[index].cos += 1<<(MAXN-i-2);
+                workload[index].cos += 1<<(len-i-2);
+                printf("%d\n",i);
                 break;
             }
             if(i==MAXN-2) workload[index].cos = 1;
         }
     }
-    else if(direction==2){
+    else if(direction==1){
         for(int i=0; i<MAXN-1; i++){
             if(s[i]=='1'&&s[i+1]=='0'){
-                workload[index].cos -= 1<<(MAXN-i-1);
+                workload[index].cos -= 1<<(len-i-1);
+                printf("%d\n",i);
                 break;
             }
         }
+    }
+    else if(direction==2){
+	    workload[index].cos += 1<<len;
+//printf("%d\n",i);
     }
     else if(direction==3){
-        for(int i=0; i<MAXN-1; i++){
-            if(s[i]=='0'&&s[i+1]=='1'){
-                workload[index].cos += 1<<(MAXN-i-1);
-                break;
-            }
-        }
+	    workload[index].cos -= 1<<(len-1);
+//printf("%d\n",i);
     }
-    else if(direction==4){
-        for(int i=0; i<MAXN-1; i++){
-            if(s[i]=='0'&&s[i+1]=='1'){
-                workload[index].cos -= 1<<(MAXN-i-2);
-                break;
-            }
-        }
-    }
+    printf("%d\n",workload[index].cos);
+    delete s;
     return pre_value;
 }
 
@@ -419,12 +418,13 @@ int main(int argv, char **argc) {
     }   //printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name, workload[i].allocation, workload[i].access_rate, workload[i].miss_ratio,workload[i].occ);
     printf("total miss ratio: %lf\n",pre_total_miss_ratio);
 
+    srand(time(NULL));
 
     while( T >= T_min){
-        srand(time(NULL));
+
         int target = rand()%workload_num;
-        int direction = rand()%4;//1 right expand, 2 right reduce, 3 left expand, 4 left reduce
-        printf("%d %d\n",target,direction);
+        int direction = rand()%4;//0 right expand, 1 right reduce, 2 left expand, 3 left reduce
+        //printf("%d %d\n",target,direction);
         uint64_t pre_cos = modify_cos(target, direction);
 
         segmentation();
