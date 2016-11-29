@@ -273,6 +273,7 @@ void o2m() {
             occ += occupancy[i][j];
         }
         workload[i].occ = occ;
+        if(occ<0) printf("error\n");
         workload[i].miss_ratio = workload[i].mrc[(uint64_t)occ];
         //printf("in o2m workload[%d] occ = %d, miss_ratio: %lf \n",i,occ,workload[i].miss_ratio);
     }
@@ -428,7 +429,9 @@ int main(int argv, char **argc) {
         uint64_t pre_cos = modify_cos(target, direction);
 
         segmentation();
+        printf("OK\n");
         init_occupancy();
+        printf("OK\n");
         //get total miss_ratio
         accesses = 500;
         for(int i=0; i< 2000; i++){
