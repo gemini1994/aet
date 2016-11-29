@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <sys/time.h>
 #include <set>
+#include <time.h>
+#include <math.h>
 using namespace std;
 typedef unsigned long long uint64_t;
 const uint64_t CACHE_LINE = 64; // Cache Line Size is 64B
@@ -15,6 +17,10 @@ const uint64_t WAY_SIZE = (56320 << 10) / WAY / CACHE_LINE;
 const uint64_t L2_CACHE_SIZE = (256 << 10) / CACHE_LINE;
 const uint64_t BLOCK = 16; // 1 block = 16 cache lines
 const uint64_t MAXS = WAY_SIZE * WAY / BLOCK; // granularity is 1KB, (16 cache lines)
+
+double T = 10000;//temperature
+double T_min = 1;//threshold
+double k = 0.0001;//constant
 
 struct Benchmark{
     char *name;
@@ -43,7 +49,7 @@ struct Workload {
     char *allocation;
     uint64_t cos;
     int ways;
-    double access_rate, miss_rate;
+    double access_rate, miss_ratio;
     uint64_t access_num;
     double mrc[MAXS];
     double occ;
@@ -267,8 +273,8 @@ void o2m() {
             occ += occupancy[i][j];
         }
         workload[i].occ = occ;
-        workload[i].miss_rate = workload[i].mrc[(uint64_t)occ];
-        //printf("in o2m workload[%d] occ = %d, miss_rate: %lf \n",i,occ,workload[i].miss_rate);
+        workload[i].miss_ratio = workload[i].mrc[(uint64_t)occ];
+        //printf("in o2m workload[%d] occ = %d, miss_ratio: %lf \n",i,occ,workload[i].miss_ratio);
     }
 }
 
@@ -282,10 +288,10 @@ void m2o() {
         for (set<int>::iterator iter = segment[i].workload.begin();
             iter != segment[i].workload.end(); iter++) {
             int wid = *iter;
-            miss_num[wid] = (workload[wid].miss_rate * workload[wid].access_rate * accesses * segment_ways / workload[wid].ways);
+            miss_num[wid] = (workload[wid].miss_ratio * workload[wid].access_rate * accesses * segment_ways / workload[wid].ways);
             //printf("miss_num %lf\n",miss_num[wid]);
             miss_num_total += miss_num[wid];
-	    //printf("workload[%d].miss_rate: %lf, workload[%d].access_rate: %lf,accesses: %d, segment_ways: %d, workload[%d].ways: %d, miss_num[%d]: %d\n",wid,workload[wid].miss_rate,wid,workload[wid].access_rate,accesses,segment_ways,wid,workload[wid].ways,wid,miss_num[wid]);
+	    //printf("workload[%d].miss_ratio: %lf, workload[%d].access_rate: %lf,accesses: %d, segment_ways: %d, workload[%d].ways: %d, miss_num[%d]: %d\n",wid,workload[wid].miss_ratio,wid,workload[wid].access_rate,accesses,segment_ways,wid,workload[wid].ways,wid,miss_num[wid]);
         }
         //printf("miss_num_total: %d\n",miss_num_total);
 
@@ -296,6 +302,62 @@ void m2o() {
                                 - (miss_num_total - miss_num[wid]) * occupancy[wid][i] / segment_blocks;
         }
     }
+}
+
+
+char* ull2BinaryStr(uint64_t cos){
+    char *s = new char[256];
+    int i = 0;
+    while(cos){
+        s[i] = cos%2+'0';
+        cos/=2;
+        i++;
+    }
+    s[i] = 0;
+    return s;
+}
+
+//direction: 1 right expand, 2 right reduce, 3 left expand, 4 left reduce
+int modify_cos(int index, int direction){// return pre_value
+    char *s = ull2BinaryStr(workload[index].cos);
+    //printf("%s\n",s);
+    int pre_value = workload[index].cos;
+
+    if((strlen(s)==MAXN && direction==3)||(strlen(s)==0&&(direction==2||direction==4))||(s[MAXN-1]=='1'&&direction==1)) return pre_value;
+    if(direction==1){
+        for(int i=0; i<MAXN-1; i++){
+            if(s[i]=='1'&&s[i+1]=='0'){
+                workload[index].cos += 1<<(MAXN-i-2);
+                break;
+            }
+            if(i==MAXN-2) workload[index].cos = 1;
+        }
+    }
+    else if(direction==2){
+        for(int i=0; i<MAXN-1; i++){
+            if(s[i]=='1'&&s[i+1]=='0'){
+                workload[index].cos -= 1<<(MAXN-i-1);
+                break;
+            }
+        }
+    }
+    else if(direction==3){
+        for(int i=0; i<MAXN-1; i++){
+            if(s[i]=='0'&&s[i+1]=='1'){
+                workload[index].cos += 1<<(MAXN-i-1);
+                break;
+            }
+        }
+    }
+    else if(direction==4){
+        for(int i=0; i<MAXN-1; i++){
+            if(s[i]=='0'&&s[i+1]=='1'){
+                workload[index].cos -= 1<<(MAXN-i-2);
+                break;
+            }
+        }
+    }
+    return pre_value;
 }
 
 bool need_calc_ar = false;
@@ -313,7 +375,7 @@ int main(int argv, char **argc) {
         workload[i].allocation = strdup(argc[i * 2 + 3]);
         workload[i].cos = strtouint64(workload[i].allocation);
         workload[i].ways = count_1s(workload[i].cos);
-        workload[i].miss_rate = 0;
+        workload[i].miss_ratio = 0;
         strcpy(filename, workload[i].name);
         strcat(filename, ".txt");
         fin = fopen(filename, "rb");
@@ -345,22 +407,51 @@ int main(int argv, char **argc) {
         }
 	*/
         //printf("\n");
-	if(i%10 == 0) accesses--;
+	    if(i%10 == 0) accesses--;
     }
     o2m();
 
-    double total_miss_rate = 0;
+    double pre_total_miss_ratio = 0;
+    double cur_total_miss_ratio = 0;
+
     for (int i = 0; i < workload_num; i++) {
-	total_miss_rate += workload[i].miss_rate;
-        //printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name, workload[i].allocation, workload[i].access_rate, workload[i].miss_rate,workload[i].occ);
-	if(i==workload_num-1) printf("total miss rate: %lf\n",total_miss_rate);
-        /*
-        for (int j = 0; j < segment_num; j++) {
-            printf("\t%llu", occupancy[i][j]);
+	    pre_total_miss_ratio += workload[i].miss_ratio;
+    }   //printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name, workload[i].allocation, workload[i].access_rate, workload[i].miss_ratio,workload[i].occ);
+    printf("total miss ratio: %lf\n",pre_total_miss_ratio);
+
+
+    while( T >= T_min){
+        srand(time(NULL));
+        int target = rand()%workload_num;
+        int direction = rand()%4;//1 right expand, 2 right reduce, 3 left expand, 4 left reduce
+        printf("%d %d\n",target,direction);
+        uint64_t pre_cos = modify_cos(target, direction);
+
+        segmentation();
+        init_occupancy();
+        //get total miss_ratio
+        accesses = 500;
+        for(int i=0; i< 2000; i++){
+            o2m();
+            m2o();
+            if(i%10==0) accesses--;
         }
-        printf("\n");
-        */
+        o2m();
+
+        for(int i=0; i<workload_num; i++){
+            cur_total_miss_ratio += workload[i].miss_ratio;
+        }
+
+        //printf("total miss ratio: %lf\n",cur_total_miss_ratio);
+
+        double df = cur_total_miss_ratio - pre_total_miss_ratio;
+        if((df>0) && (rand()%1000/(float)1000) >exp(-df/(k*T)))
+            workload[target].cos = pre_cos;
+        pre_total_miss_ratio = cur_total_miss_ratio;
+        cur_total_miss_ratio = 0;
+        T--;
     }
+
 
     // sprintf(filename,"aetcount.txt");
     // fout = fopen(filename,"w");
