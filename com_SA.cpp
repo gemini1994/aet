@@ -18,6 +18,9 @@ const uint64_t L2_CACHE_SIZE = (256 << 10) / CACHE_LINE;
 const uint64_t BLOCK = 16; // 1 block = 16 cache lines
 const uint64_t MAXS = WAY_SIZE * WAY / BLOCK; // granularity is 1KB, (16 cache lines)
 
+double T = 10000;//temperature
+double T_min = 1;//threshold
+double k = 0.0001;//constant
 
 struct Benchmark{
     char *name;
@@ -303,6 +306,59 @@ void m2o() {
 }
 
 
+char* ull2BinaryStr(uint64_t cos){
+    char temp[256];
+    char *s = new char[256];
+    int i = 0;
+    while(cos){
+        temp[i] = cos%2+'0';
+        cos/=2;
+        i++;
+    }
+    for(int j=0;j<i;j++) s[j] = temp[i-j-1];
+    s[i] = 0;
+    return s;
+}
+
+//direction: 0 right expand, 1 right reduce, 2 left expand, 3 left reduce
+int modify_cos(int index, int direction){// return pre_value
+    char *s = ull2BinaryStr(workload[index].cos);
+    int len = strlen(s);
+    //printf("%d %d %s\n",index,direction,s);
+    int pre_value = workload[index].cos;
+    //printf("%d\n",workload[index].cos);
+    if((len==MAXN && direction==2)||(len<=1&&(direction==1||direction==3))||(s[MAXN-1]=='1'&&direction==0)) return pre_value;
+    if(direction==0){
+        for(int i=0; i<MAXN-1; i++){
+            if(s[i]=='1'&&s[i+1]=='0'){
+                workload[index].cos += 1<<(len-i-2);
+                //printf("%d\n",i);
+                break;
+            }
+            if(i==MAXN-2) workload[index].cos = 1;
+        }
+    }
+    else if(direction==1){
+        for(int i=0; i<MAXN-1; i++){
+            if(s[i]=='1'&&s[i+1]=='0'){
+                workload[index].cos -= 1<<(len-i-1);
+                //printf("%d\n",i);
+                break;
+            }
+        }
+    }
+    else if(direction==2){
+	    workload[index].cos += 1<<len;
+//printf("%d\n",i);
+    }
+    else if(direction==3){
+	    workload[index].cos -= 1<<(len-1);
+//printf("%d\n",i);
+    }
+    //printf("%d\n",workload[index].cos);
+    delete s;
+    return pre_value;
+}
 
 bool need_calc_ar = false;
 char filename[100];
@@ -357,12 +413,53 @@ int main(int argv, char **argc) {
 
     segment_num = 0;
     double pre_total_miss_ratio = 0;
-
+    double cur_total_miss_ratio = 0;
+    double best;
     for (int i = 0; i < workload_num; i++) {
 	    pre_total_miss_ratio += workload[i].miss_ratio;
     }   //printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name, workload[i].allocation, workload[i].access_rate, workload[i].miss_ratio,workload[i].occ);
     printf("total miss ratio: %lf\n",pre_total_miss_ratio);
+    best = pre_total_miss_ratio;
+    srand(time(NULL));
 
+    while( T >= T_min){
+
+        int target = rand()%workload_num;
+        int direction = rand()%4;//0 right expand, 1 right reduce, 2 left expand, 3 left reduce
+        //printf("%d %d\n",target,direction);
+        uint64_t pre_cos = modify_cos(target, direction);
+
+        segmentation();
+        init_occupancy();
+        //get total miss_ratio
+        accesses = 500;
+        for(int i=0; i< 2000; i++){
+            o2m();
+            m2o();
+            if(i%10==0) accesses--;
+        }
+        o2m();
+
+	segment_num = 0;
+        for(int i=0; i<workload_num; i++){
+            cur_total_miss_ratio += workload[i].miss_ratio;
+        }
+
+    printf("total miss ratio: %lf\n",cur_total_miss_ratio);
+	printf("allocation: \n");
+	for(int i = 0;i<workload_num;i++){
+	    printf("%s ",ull2BinaryStr(workload[i].cos));
+	    if(i==workload_num-1) printf("\n\n");
+	}
+	if(cur_total_miss_ratio<best) best=cur_total_miss_ratio;
+        double df = cur_total_miss_ratio - pre_total_miss_ratio;
+        if((df>0) && (rand()%1000/(float)1000) >exp(-df/(k*T)))
+            workload[target].cos = pre_cos;
+        pre_total_miss_ratio = cur_total_miss_ratio;
+        cur_total_miss_ratio = 0;
+        T--;
+    }
+	printf("\n\nThe best: %lf\n",best);
 
     // sprintf(filename,"aetcount.txt");
     // fout = fopen(filename,"w");
