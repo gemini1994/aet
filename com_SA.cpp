@@ -254,6 +254,7 @@ void init_occupancy() {
 }
 */
 void init_occupancy() {
+    memset(occupancy,0,sizeof(occupancy));
     for (int i = 0; i < segment_num; i++) {
         uint64_t segment_ways = segment[i].ends - segment[i].begins + 1;
         uint64_t segment_blocks = segment_ways * WAY_SIZE / BLOCK;
@@ -341,7 +342,7 @@ bool containOne1(uint64_t cos){
 uint64_t modifyCos(int index, int d){
     uint64_t cos = workload[index].cos;
     uint64_t pre_value = cos;
-    if((cos >= 2<<(MAXN-1) && d==2)||((cos%2==1)&& d==0)||(containOne1(cos)&&(d==1||d==3)))
+    if((cos >= 1<<(MAXN-1) && d==2)||((cos%2==1)&& d==0)||(containOne1(cos)&&(d==1||d==3)))
         return pre_value;
     if(d==0){//right expand
         int c = 0;
@@ -438,6 +439,7 @@ int main(int argv, char **argc) {
     o2m();
 
     segment_num = 0;
+
     double pre_total_miss_ratio = 0;
     double cur_total_miss_ratio = 0;
     double best;
@@ -449,13 +451,20 @@ int main(int argv, char **argc) {
     srand(time(NULL));
 
     while( T >= T_min){
-
+        memset(segment,0,sizeof(Segment)*(WAY+1));
+        memset(occupancy,0,sizeof(occupancy));
+        segment_num = 0;
         int target = rand()%workload_num;
         int direction = rand()%4;//0 right expand, 1 right reduce, 2 left expand, 3 left reduce
         //printf("%d %d\n",target,direction);
         uint64_t pre_cos = modifyCos(target, direction);
-
+	 printf("allocation: \n");
+	    for(int i = 0;i<workload_num;i++){
+	        printf("%s %s ",workload[i].name,ull216Str(workload[i].cos));
+	        if(i==workload_num-1) printf("\n");
+	    }
         segmentation();
+//printf("segment_num: %d\n",segment_num);
         init_occupancy();
         //get total miss_ratio
         accesses = 500;
@@ -465,18 +474,12 @@ int main(int argv, char **argc) {
             if(i%10==0) accesses--;
         }
         o2m();
-
-	    segment_num = 0;
         for(int i=0; i<workload_num; i++){
             cur_total_miss_ratio += workload[i].miss_ratio;
         }
 
-        printf("total miss ratio: %lf\n",cur_total_miss_ratio);
-	    printf("allocation: \n");
-	    for(int i = 0;i<workload_num;i++){
-	        printf("%s %s ",workload[i].name,ull216Str(workload[i].cos));
-	        if(i==workload_num-1) printf("\n\n");
-	    }
+        printf("total miss ratio: %lf\n\n",cur_total_miss_ratio);
+
 	    if(cur_total_miss_ratio<best) best=cur_total_miss_ratio;
         double df = cur_total_miss_ratio - pre_total_miss_ratio;
         if((df>0) && ((rand()%1000/(float)1000) >exp(-df/(k*T))))
