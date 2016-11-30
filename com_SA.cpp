@@ -320,43 +320,69 @@ char* ull2BinaryStr(uint64_t cos){
     return s;
 }
 
+char* ull216Str(uint64_t cos){
+    char *s = new char[256];
+    strcpy(s,"0x");
+    char temp[256];
+    sprintf(temp,"%X",cos);
+    strcat(s,temp);
+    return s;
+}
+bool containOne1(uint64_t cos){
+    int c = 0;
+    while(cos){
+        if(cos%2==1) c++;
+        cos=cos>>1;
+    }
+    if(c==1) return true;
+    else return false;
+}
 //direction: 0 right expand, 1 right reduce, 2 left expand, 3 left reduce
-int modify_cos(int index, int direction){// return pre_value
-    char *s = ull2BinaryStr(workload[index].cos);
-    int len = strlen(s);
-    //printf("%d %d %s\n",index,direction,s);
-    int pre_value = workload[index].cos;
-    //printf("%d\n",workload[index].cos);
-    if((len==MAXN && direction==2)||(len<=1&&(direction==1||direction==3))||(s[MAXN-1]=='1'&&direction==0)) return pre_value;
-    if(direction==0){
-        for(int i=0; i<MAXN-1; i++){
-            if(s[i]=='1'&&s[i+1]=='0'){
-                workload[index].cos += 1<<(len-i-2);
-                //printf("%d\n",i);
-                break;
-            }
-            if(i==MAXN-2) workload[index].cos = 1;
+uint64_t modifyCos(int index, int d){
+    uint64_t cos = workload[index].cos;
+    uint64_t pre_value = cos;
+    if((cos >= 2<<(MAXN-1) && d==2)||((cos%2==1)&& d==0)||(containOne1(cos)&&(d==1||d==3)))
+        return pre_value;
+    if(d==0){//right expand
+        int c = 0;
+        while(cos%2==0){
+            cos=cos>>1;
+            c++;
         }
+        workload[index].cos += 1<<(c-1);
     }
-    else if(direction==1){
-        for(int i=0; i<MAXN-1; i++){
-            if(s[i]=='1'&&s[i+1]=='0'){
-                workload[index].cos -= 1<<(len-i-1);
-                //printf("%d\n",i);
-                break;
-            }
+    else if(d==1){
+        int c = 0;
+        while(cos%2==0){
+            cos=cos>>1;
+            c++;
         }
+        workload[index].cos -= 1<<c;
     }
-    else if(direction==2){
-	    workload[index].cos += 1<<len;
-//printf("%d\n",i);
+    else if(d==2){
+        int c = 0;
+        while(cos%2==0){
+            cos=cos>>1;
+            c++;
+        }
+        while(cos%2){
+            cos=cos>>1;
+            c++;
+        }
+        workload[index].cos += 1<<c;
     }
-    else if(direction==3){
-	    workload[index].cos -= 1<<(len-1);
-//printf("%d\n",i);
+    else if(d==3){
+        int c = 0;
+        while(cos%2==0){
+            cos=cos>>1;
+            c++;
+        }
+        while(cos%2){
+            cos=cos>>1;
+            c++;
+        }
+        workload[index].cos -= 1<<(c-1);
     }
-    //printf("%d\n",workload[index].cos);
-    delete s;
     return pre_value;
 }
 
@@ -427,7 +453,7 @@ int main(int argv, char **argc) {
         int target = rand()%workload_num;
         int direction = rand()%4;//0 right expand, 1 right reduce, 2 left expand, 3 left reduce
         //printf("%d %d\n",target,direction);
-        uint64_t pre_cos = modify_cos(target, direction);
+        uint64_t pre_cos = modifyCos(target, direction);
 
         segmentation();
         init_occupancy();
@@ -440,20 +466,20 @@ int main(int argv, char **argc) {
         }
         o2m();
 
-	segment_num = 0;
+	    segment_num = 0;
         for(int i=0; i<workload_num; i++){
             cur_total_miss_ratio += workload[i].miss_ratio;
         }
 
-    printf("total miss ratio: %lf\n",cur_total_miss_ratio);
-	printf("allocation: \n");
-	for(int i = 0;i<workload_num;i++){
-	    printf("%s ",ull2BinaryStr(workload[i].cos));
-	    if(i==workload_num-1) printf("\n\n");
-	}
-	if(cur_total_miss_ratio<best) best=cur_total_miss_ratio;
+        printf("total miss ratio: %lf\n",cur_total_miss_ratio);
+	    printf("allocation: \n");
+	    for(int i = 0;i<workload_num;i++){
+	        printf("%s %s ",workload[i].name,ull216Str(workload[i].cos));
+	        if(i==workload_num-1) printf("\n\n");
+	    }
+	    if(cur_total_miss_ratio<best) best=cur_total_miss_ratio;
         double df = cur_total_miss_ratio - pre_total_miss_ratio;
-        if((df>0) && (rand()%1000/(float)1000) >exp(-df/(k*T)))
+        if((df>0) && ((rand()%1000/(float)1000) >exp(-df/(k*T))))
             workload[target].cos = pre_cos;
         pre_total_miss_ratio = cur_total_miss_ratio;
         cur_total_miss_ratio = 0;
