@@ -18,10 +18,6 @@ const uint64_t L2_CACHE_SIZE = (256 << 10) / CACHE_LINE;
 const uint64_t BLOCK = 16; // 1 block = 16 cache lines
 const uint64_t MAXS = WAY_SIZE * WAY / BLOCK; // granularity is 1KB, (16 cache lines)
 
-double T = 10000;//temperature
-double T_min = 1;//threshold
-double k = 0.0001;//constant
-
 struct Benchmark{
     char *name;
     double access_rate;
