@@ -61,6 +61,7 @@ void o2m() {
             occ += occupancy[i][j];
         }
         workload[i].occ = occ;
+	if(occ>MAXS) occ=MAXS;
         // if(occ<0) printf("error\n");
         workload[i].miss_ratio = workload[i].mrc[(uint64_t)occ];
         // printf("in o2m workload[%d] occ = %d, miss_ratio: %lf

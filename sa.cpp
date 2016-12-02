@@ -151,8 +151,12 @@ int main(int argv, char **argc) {
             rand() %
             4; // 0 right expand, 1 right reduce, 2 left expand, 3 left reduce
         uint64_t pre_cos = modifyCos(target, direction);
-
+        for(int i = 0; i<workload_num; i++){
+            printf("%s %s ",workload[i].name, ull216Str(workload[i].cos));
+            if(i==workload_num-1) printf("\n");
+        }
         double tmp = predict_total_miss_rate();
+        printf("miss_rate: %lf\n",tmp);
         if (tmp < best)
             best = tmp;
         double df = tmp - cur_miss_rate;

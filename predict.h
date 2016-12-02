@@ -21,11 +21,6 @@ const uint64_t BLOCK = 16; // 1 block = 16 cache lines
 const uint64_t MAXS = WAY_SIZE * WAY / BLOCK; // granularity is 1KB, (16 cache lines)
 
 
-struct Benchmark{
-    char *name;
-    double access_rate;
-    //Benchmark()
-} *benchmarks[8];
 
 struct Segment {
     int begins, ends;
