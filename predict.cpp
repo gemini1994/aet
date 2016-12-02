@@ -107,7 +107,8 @@ double predict_total_miss_rate() {
     char filename[100];
     memset(segment, 0, sizeof(segment));
     memset(occupancy, 0, sizeof(occupancy));
-  
+
+    for(int i=0;i<workload_num;i++) workload[i].ways = count_1s(workload[i].cos);
     segmentation();
     init_occupancy();
     // iteration process
