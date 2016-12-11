@@ -97,6 +97,30 @@ uint64_t modifyCos(int index, int d) {
     return pre_value;
 }
 
+void get_accessrate(){
+    FILE *acc =  fopen("access_rate.txt","rb");
+    if(!acc){
+        printf("access_rate file not exist\n");
+        exit(-1);
+    }
+    char name[100];
+    double access_rate;
+    double total = 0;
+    while(fscanf(acc,"%s %lf",name,&access_rate)==2){
+        total += access_rate;
+        for(int i=0; i<workload_num; i++){
+            if(strcmp(workload[i].name,name)==0){
+                workload[i].access_rate = access_rate;
+                break;
+            }
+        }
+    }
+    for(int i=0; i<workload_num;i++){
+        workload[i].access_rate /= total;
+    }
+    fclose(acc);
+}
+
 void get_mrc(int i) {
     int c = 0;
     double pre = 0;
@@ -114,6 +138,7 @@ void get_mrc(int i) {
 
 int main(int argv, char **argc) {
     char filename[100];
+    char target[100];
     srand(time(NULL));
 
     workload_num = argv / 2 - 1;
@@ -130,8 +155,14 @@ int main(int argv, char **argc) {
         workload[i].ways = count_1s(workload[i].cos);
         workload[i].miss_ratio = 0;
         strcpy(filename, workload[i].name);
+        strcpy(target,"./mrc/");
         strcat(filename, ".txt");
-        fin = fopen(filename, "rb");
+        strcat(target,filename);
+        fin = fopen(target, "rb");
+        if(!fin){
+            printf("file not exist\n");
+            exit(-1);
+        }
         // calc_mrc(i);
         get_mrc(i);
         if (need_calc_ar) {
@@ -141,6 +172,7 @@ int main(int argv, char **argc) {
         }
         fclose(fin);
     }
+    get_accessrate();
 
     best = predict_total_miss_rate();
     cur_miss_rate = best;

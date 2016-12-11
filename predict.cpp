@@ -61,7 +61,7 @@ void o2m() {
             occ += occupancy[i][j];
         }
         workload[i].occ = occ;
-	if(occ>MAXS) occ=MAXS;
+	    if(occ>MAXS) occ=MAXS;
         // if(occ<0) printf("error\n");
         workload[i].miss_ratio = workload[i].mrc[(uint64_t)occ];
         // printf("in o2m workload[%d] occ = %d, miss_ratio: %lf
@@ -136,7 +136,7 @@ double predict_total_miss_rate() {
     double pre_total_miss_ratio = 0;
 
     for (int i = 0; i < workload_num; i++) {
-        pre_total_miss_ratio += workload[i].miss_ratio;
+        pre_total_miss_ratio += workload[i].miss_ratio*workload[i].access_rate;
     } // printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name,
       // workload[i].allocation, workload[i].access_rate,
       // workload[i].miss_ratio,workload[i].occ);
