@@ -6,3 +6,10 @@ GemsFDTD 19
 libquantum 1.34
 milc 19.7
 sjeng 0.48
+bwaves 17.8
+lbm 25.2
+sphinx3 14.1
+bzip2 4.03
+gobmk 2.07
+h264ref 1.03
+hmmer 2.76
