@@ -3,6 +3,6 @@ gcc 13.6
 mcf 63.1
 leslie3d 21.3
 GemsFDTD 19
-libquantum 13.4
+libquantum 1.34
 milc 19.7
 sjeng 0.48

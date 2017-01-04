@@ -118,8 +118,8 @@ double predict_total_miss_rate() {
         m2o();
     }
     */
-    accesses = 500;
-    for (int i = 0; i < 2000; i++) {
+    accesses = 1000;
+    for (int i = 0; i < 8000; i++) {
         o2m();
         m2o();
         /*

@@ -10,7 +10,7 @@ extern bool need_calc_ar;
 
 double T = 10000;//temperature
 double T_min = 1;//threshold
-double k = 0.0001;//constant
+double k = 6e-7;//constant
 
 FILE *fin;
 double best, cur_miss_rate;
@@ -27,6 +27,23 @@ char *ull2BinaryStr(uint64_t cos) {
     for (int j = 0; j < i; j++)
         s[j] = temp[i - j - 1];
     s[i] = 0;
+    return s;
+}
+
+char *cos2Pic(uint64_t cos){
+    char temp[256];
+    char *s = new char[256];
+    int i = 0;
+    while(cos){
+        if(cos%2==0) temp[i] = ' ';
+        else temp[i] = '*';
+        i++;
+        cos /=2;
+    }
+    for(;i<20;i++) temp[i]=' ';
+    for(int j=0; j<i; j++)
+        s[j] = temp[i-j-1];
+    s[i] = '\0';
     return s;
 }
 
@@ -136,6 +153,13 @@ void get_mrc(int i) {
         workload[i].mrc[c] = pre;
 }
 
+void display(){
+    for(int i=0; i<workload_num; i++){
+        printf("%15s: %s\n",workload[i].name,cos2Pic(workload[i].cos));
+    }
+    printf("\n");
+}
+
 int main(int argv, char **argc) {
     char filename[100];
     char target[100];
@@ -176,7 +200,7 @@ int main(int argv, char **argc) {
 
     best = predict_total_miss_rate();
     cur_miss_rate = best;
-
+    int _count = 0;
     while (T >= T_min) {
         int target = rand() % workload_num;
         int direction =
@@ -187,6 +211,7 @@ int main(int argv, char **argc) {
             printf("%s %s ",workload[i].name, ull216Str(workload[i].cos));
             if(i==workload_num-1) printf("\n");
         }
+        display();
         double tmp = predict_total_miss_rate();
         printf("miss_rate: %lf\n",tmp);
         if (tmp < best)
@@ -197,7 +222,11 @@ int main(int argv, char **argc) {
         } else {
             cur_miss_rate = tmp;
         }
-        T--;
+        if(_count==100){
+            T*=0.9;
+            _count = 0;
+        }
+        else _count++;
     }
 
     printf("\n\nThe best: %lf\n", best);
