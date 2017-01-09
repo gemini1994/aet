@@ -61,11 +61,19 @@ int main(int argv, char** argc){
             m = strtok(NULL," \t");//miss1
             o = strtok(NULL," \t");//llc1
             m = strtok(m,"k");
-            IPC[i] = (IPC[i]*(c-1) + atof(I))/c;
-            miss[i] = (miss[i]*(c-1) + atof(m))/c;
-            occ[i] = (occ[i]*(c-1) + atof(o))/c;
+            IPC[i] += 1/atof(I);
+            miss[i] += 1/atof(m);
+            occ[i] += 1/atof(o);
+            //IPC[i] = (IPC[i]*(c-1) + atof(I))/c;
+            //miss[i] = (miss[i]*(c-1) + atof(m))/c;
+            //occ[i] = (occ[i]*(c-1) + atof(o))/c;
         }
         getline(&buffer,&len,fin);
+    }
+    for(int i = 0;i<workload_num;i++){
+            IPC[i] = c*(1/IPC[i]);
+            miss[i] = c*(1/miss[i]);
+            occ[i] = c*(1/occ[i]);
     }
 
     for(int i = 0; i < workload_num; i++){

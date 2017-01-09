@@ -8,9 +8,7 @@ extern int workload_num;
 extern bool need_calc_ar;
 
 
-double T = 10000;//temperature
-double T_min = 1;//threshold
-double k = 6e-7;//constant
+double times = 10000;//random times
 
 FILE *fin;
 double best, cur_miss_rate;
@@ -164,9 +162,11 @@ int main(int argv, char **argc) {
     char filename[100];
     char target[100];
     srand(time(NULL));
-
+    FILE *allo = fopen("mcf_allo.txt","w");
+    FILE *result = fopen("mcf_result.txt","w");
     workload_num = argv / 2 - 1;
     need_calc_ar = false;
+
     if (argc[1][0] == '1') {
         need_calc_ar = true;
     }
@@ -201,40 +201,31 @@ int main(int argv, char **argc) {
     best = predict_total_miss_rate();
     cur_miss_rate = best;
     int _count = 0;
-    while (T >= T_min) {
+    double t = 0;
+    while (t<times) {
         int target = rand() % workload_num;
         int direction =
             rand() %
             4; // 0 right expand, 1 right reduce, 2 left expand, 3 left reduce
         uint64_t pre_cos = modifyCos(target, direction);
+        double tmp = predict_total_miss_rate();
         for(int i = 0; i<workload_num; i++){
-            printf("%s %s ",workload[i].name, ull216Str(workload[i].cos));
-            if(i==workload_num-1) printf("\n");
+            fprintf(allo,"%s %s ",workload[i].name, ull216Str(workload[i].cos));
+            if(i==workload_num-1) fprintf(allo,"\n");
         }
+        fprintf(result,"%lf\n",workload[4].miss_ratio);
+        /*
         printf("single miss_rate:\n");
         for(int i = 0; i <workload_num; i++){
             printf("%s: %lf ",workload[i].name, workload[i].miss_ratio);
             if(i==workload_num-1) printf("\n");
         }
-        display();
-        double tmp = predict_total_miss_rate();
-        printf("miss_rate: %lf\n",tmp);
-        if (tmp < best)
-            best = tmp;
-        double df = tmp - cur_miss_rate;
-        if ((df > 0) && ((rand() % 1000 / (float)1000) > exp(-df / (k * T)))) {
-            workload[target].cos = pre_cos;
-        } else {
-            cur_miss_rate = tmp;
-        }
-        if(_count==100){
-            T*=0.9;
-            _count = 0;
-        }
-        else _count++;
+        */
+        t++;
+        //display();
+
     }
-
-    printf("\n\nThe best: %lf\n", best);
-
+    fclose(allo);
+    fclose(result);
     return 0;
 }
