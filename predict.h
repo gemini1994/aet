@@ -33,6 +33,7 @@ struct Workload {
     uint64_t cos;
     int ways;
     double access_rate, miss_ratio;
+    double base_ipc;
     uint64_t access_num;
     double mrc[MAXS];
     double occ;
@@ -69,5 +70,8 @@ inline int count_1s(int v) {
     }
     return num;
 }
-
+void get_accessrate();
+void get_mrc(int i,FILE* fin);
+void get_baseIPC();
 double predict_total_miss_rate();
+double predict_total_ipc(double CPI, double PENALTY);

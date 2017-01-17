@@ -28,7 +28,7 @@ int main(int argv, char** argc){
     memset(IPC,0,sizeof(double)*workload_num);
 
     if(fin == NULL){
-        printf("file not exit\n");
+        printf("file not found\n");
         exit(-1);
     }
     size_t len = 500;
@@ -61,9 +61,9 @@ int main(int argv, char** argc){
             m = strtok(NULL," \t");//miss1
             o = strtok(NULL," \t");//llc1
             m = strtok(m,"k");
-            IPC[i] += 1/atof(I);
-            miss[i] += 1/atof(m);
-            occ[i] += 1/atof(o);
+            IPC[i] += (atof(I)==0?100:(1/atof(I)));
+            miss[i] += (atof(m)==0?100:(1/atof(m)));
+            occ[i] += (atof(o)==0?100:(1/atof(o)));
             //IPC[i] = (IPC[i]*(c-1) + atof(I))/c;
             //miss[i] = (miss[i]*(c-1) + atof(m))/c;
             //occ[i] = (occ[i]*(c-1) + atof(o))/c;

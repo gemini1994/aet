@@ -103,6 +103,105 @@ void m2o() {
     }
 }
 
+void get_accessrate(){
+    FILE *acc =  fopen("access_rate.txt","rb");
+    if(!acc){
+        printf("access_rate file not exist\n");
+        exit(-1);
+    }
+    char name[100];
+    double access_rate;
+    double total = 0;
+    while(fscanf(acc,"%s %lf",name,&access_rate)==2){
+        total += access_rate;
+        for(int i=0; i<workload_num; i++){
+            if(strcmp(workload[i].name,name)==0){
+                workload[i].access_rate = access_rate;
+                break;
+            }
+        }
+    }
+    for(int i=0; i<workload_num;i++){
+        workload[i].access_rate /= total;
+    }
+    fclose(acc);
+}
+
+void get_baseIPC(){
+    FILE * ipc = fopen("base_IPC.txt","rb");
+    if(!ipc){
+        printf("base_IPC file not exist\n");
+        exit(-1);
+    }
+    char name[100];
+    double base_ipc;
+    while(fscanf(ipc,"%s %lf",name,&base_ipc)==2){
+        for(int i=0; i<workload_num; i++){
+            if(strcmp(workload[i].name,name)==0){
+                workload[i].base_ipc = base_ipc;
+                break;
+            }
+        }
+    }
+    fclose(ipc);
+}
+
+void get_mrc(int i,FILE *fin) {
+    int c = 0;
+    double pre = 0;
+    for (; c < MAXS; c++) {
+        if (fscanf(fin, "%lf", &workload[i].mrc[c]) > 0)
+            ;
+        else {
+            pre = workload[i].mrc[c - 1];
+            break;
+        }
+    }
+    for (; c < MAXS; c++)
+        workload[i].mrc[c] = pre;
+}
+
+
+double predict_total_ipc(double CPI, double PENALTY) {
+    char filename[100];
+    memset(segment, 0, sizeof(segment));
+    memset(occupancy, 0, sizeof(occupancy));
+
+    for(int i=0;i<workload_num;i++) workload[i].ways = count_1s(workload[i].cos);
+    segmentation();
+    init_occupancy();
+    // iteration process
+    /*
+    for (accesses = 1000; accesses >= 100; accesses -= 1) {
+        o2m();
+        m2o();
+    }
+    */
+    accesses = 1000;
+    for (int i = 0; i < 8000; i++) {
+        o2m();
+        m2o();
+        /*
+        for( int j = 0; j< workload_num; j++ ){
+            if(j==0)printf("%d\n",(int)workload[j].occ);
+        }
+        */
+        // printf("\n");
+        if (i % 10 == 0)
+            accesses--;
+    }
+    o2m();
+
+    double pre_total_ipc = 0;
+
+    for (int i = 0; i < workload_num; i++) {
+        pre_total_ipc += 1/(CPI+workload[i].miss_ratio*workload[i].access_rate*PENALTY);
+    } // printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name,
+      // workload[i].allocation, workload[i].access_rate,
+      // workload[i].miss_ratio,workload[i].occ);
+    return pre_total_ipc;
+}
+
 double predict_total_miss_rate() {
     char filename[100];
     memset(segment, 0, sizeof(segment));

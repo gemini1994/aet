@@ -114,45 +114,6 @@ uint64_t modifyCos(int index, int d) {
     return pre_value;
 }
 
-void get_accessrate(){
-    FILE *acc =  fopen("access_rate.txt","rb");
-    if(!acc){
-        printf("access_rate file not exist\n");
-        exit(-1);
-    }
-    char name[100];
-    double access_rate;
-    double total = 0;
-    while(fscanf(acc,"%s %lf",name,&access_rate)==2){
-        total += access_rate;
-        for(int i=0; i<workload_num; i++){
-            if(strcmp(workload[i].name,name)==0){
-                workload[i].access_rate = access_rate;
-                break;
-            }
-        }
-    }
-    for(int i=0; i<workload_num;i++){
-        workload[i].access_rate /= total;
-    }
-    fclose(acc);
-}
-
-void get_mrc(int i) {
-    int c = 0;
-    double pre = 0;
-    for (; c < MAXS; c++) {
-        if (fscanf(fin, "%lf", &workload[i].mrc[c]) > 0)
-            ;
-        else {
-            pre = workload[i].mrc[c - 1];
-            break;
-        }
-    }
-    for (; c < MAXS; c++)
-        workload[i].mrc[c] = pre;
-}
-
 void display(){
     for(int i=0; i<workload_num; i++){
         printf("%15s: %s\n",workload[i].name,cos2Pic(workload[i].cos));
@@ -188,7 +149,7 @@ int main(int argv, char **argc) {
             exit(-1);
         }
         // calc_mrc(i);
-        get_mrc(i);
+        get_mrc(i,fin);
         if (need_calc_ar) {
             workload[i].access_rate = workload[i].mrc[L2_CACHE_SIZE / BLOCK];
         } else {
