@@ -8,12 +8,8 @@ extern int workload_num;
 extern bool need_calc_ar;
 
 
-double T = 10000;//temperature
-double T_min = 1;//threshold
-double k = 6e-7;//constant
 
 FILE *fin;
-double best, cur_miss_rate;
 
 char *ull2BinaryStr(uint64_t cos) {
     char temp[256];
@@ -68,13 +64,6 @@ bool containOne1(uint64_t cos) {
         return false;
 }
 
-void display(){
-    for(int i=0; i<workload_num; i++){
-        printf("%15s: %s\n",workload[i].name,cos2Pic(workload[i].cos));
-    }
-    printf("\n");
-}
-
 int main(int argv, char **argc) {
     char filename[100];
     char target[100];
@@ -104,10 +93,12 @@ int main(int argv, char **argc) {
 
     get_accessrate();
     get_baseIPC();
-    double tmp = predict_total_miss_rate();
+    double tmp = predict_total_ipc(CPI,PENALTY);
+/*
     for(int i = 0; i < workload_num; i++){
 	printf("%s: %lf\n", workload[i].name, workload[i].miss_ratio);
     }
-
+*/
+    printf("%s missrate: %lf, ipc: %lf\n",workload[0].name,workload[0].miss_ratio,tmp);
     return 0;
 }

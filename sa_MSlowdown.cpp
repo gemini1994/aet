@@ -8,10 +8,13 @@ extern int workload_num;
 extern bool need_calc_ar;
 
 
-double times = 10000;//random times
+double T = 10000;//temperature
+double T_min = 1;//threshold
+double k = 6e-7;//constant
 
 FILE *fin;
-double best, cur_miss_rate;
+//double best_missrate, cur_miss_rate;
+double best_mslowdown,cur_mslowdown;
 
 char *ull2BinaryStr(uint64_t cos) {
     char temp[256];
@@ -112,16 +115,20 @@ uint64_t modifyCos(int index, int d) {
     return pre_value;
 }
 
+void display(){
+    for(int i=0; i<workload_num; i++){
+        printf("%15s: %s\n",workload[i].name,cos2Pic(workload[i].cos));
+    }
+    printf("\n");
+}
 
 int main(int argv, char **argc) {
     char filename[100];
     char target[100];
     srand(time(NULL));
-    FILE *allo = fopen("mcf_allo.txt","w");
-    FILE *result = fopen("mcf_result.txt","w");
+
     workload_num = argv / 2 - 1;
     need_calc_ar = false;
-
     if (argc[1][0] == '1') {
         need_calc_ar = true;
     }
@@ -143,7 +150,7 @@ int main(int argv, char **argc) {
             exit(-1);
         }
         // calc_mrc(i);
-        get_mrc(i);
+        get_mrc(i,fin);
         if (need_calc_ar) {
             workload[i].access_rate = workload[i].mrc[L2_CACHE_SIZE / BLOCK];
         } else {
@@ -153,34 +160,44 @@ int main(int argv, char **argc) {
     }
     get_accessrate();
     get_baseIPC();
-    best = predict_total_miss_rate();
-    cur_miss_rate = best;
+
+    best_mslowdown = predict_max_weighted_slowdown(CPI,PENALTY);
+    cur_mslowdown = best_mslowdown;
     int _count = 0;
-    double t = 0;
-    while (t<times) {
+    while (T >= T_min) {
         int target = rand() % workload_num;
         int direction =
             rand() %
             4; // 0 right expand, 1 right reduce, 2 left expand, 3 left reduce
         uint64_t pre_cos = modifyCos(target, direction);
-        double tmp = predict_total_miss_rate();
         for(int i = 0; i<workload_num; i++){
-            fprintf(allo,"%s %s ",workload[i].name, ull216Str(workload[i].cos));
-            if(i==workload_num-1) fprintf(allo,"\n");
-        }
-        fprintf(result,"%lf\n",workload[4].miss_ratio);
-        /*
-        printf("single miss_rate:\n");
-        for(int i = 0; i <workload_num; i++){
-            printf("%s: %lf ",workload[i].name, workload[i].miss_ratio);
+            printf("%s %s ",workload[i].name, ull216Str(workload[i].cos));
             if(i==workload_num-1) printf("\n");
         }
-        */
-        t++;
-        //display();
-
+        printf("single weighted slowdown:\n");
+        for(int i = 0; i <workload_num; i++){
+            printf("%s: %lf ",workload[i].name,workload[i].weighted_slowdown);
+            if(i==workload_num-1) printf("\n");
+        }
+        display();
+        double tmp = predict_max_weighted_slowdown(CPI,PENALTY);
+        printf("Max weighted slowdown: %lf\n",tmp);
+        if (tmp < best_mslowdown)
+            best_mslowdown = tmp;
+        double df = tmp - cur_mslowdown;
+        if ((df > 0) && ((rand() % 1000 / (float)1000) > exp(-df / (k * T)))) {
+            workload[target].cos = pre_cos;
+        } else {
+            cur_mslowdown = tmp;
+        }
+        if(_count==100){
+            T*=0.9;
+            _count = 0;
+        }
+        else _count++;
     }
-    fclose(allo);
-    fclose(result);
+
+    printf("\n\nThe best: %lf\n", best_mslowdown);
+
     return 0;
 }

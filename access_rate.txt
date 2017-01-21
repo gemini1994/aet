@@ -2,7 +2,7 @@ omnetpp 0.0132
 gcc 0.0136
 mcf 0.0631
 leslie3d 0.0213
-GemsFDTD 00.019
+GemsFDTD 0.019
 libquantum 0.00134
 milc 0.0197
 sjeng 0.00048
@@ -13,3 +13,9 @@ bzip2 0.00403
 gobmk 0.00207
 h264ref 0.00103
 hmmer 0.00276
+astar 0.0114
+cactusADM 0.00467
+gobmk 0.00196
+povray 0.00001
+tonto 0.0058
+zeusmp 0.0052

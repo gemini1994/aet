@@ -20,7 +20,8 @@ const uint64_t L2_CACHE_SIZE = (256 << 10) / CACHE_LINE;
 const uint64_t BLOCK = 16; // 1 block = 16 cache lines
 const uint64_t MAXS = WAY_SIZE * WAY / BLOCK; // granularity is 1KB, (16 cache lines)
 
-
+const double CPI = 0.6;
+const double PENALTY = 600;
 
 struct Segment {
     int begins, ends;
@@ -34,6 +35,8 @@ struct Workload {
     int ways;
     double access_rate, miss_ratio;
     double base_ipc;
+    double ipc;
+    double weighted_slowdown;
     uint64_t access_num;
     double mrc[MAXS];
     double occ;
@@ -75,3 +78,7 @@ void get_mrc(int i,FILE* fin);
 void get_baseIPC();
 double predict_total_miss_rate();
 double predict_total_ipc(double CPI, double PENALTY);
+double predict_weighted_slowdown(double CPI,double PENALTY);
+double predict_max_weighted_slowdown(double CPI,double PENALTY);
+double predict_fair_weighted_slowdown(double CPI,double PENALTY);
+void predict_all(double CPI,double PENALTY,double *miss,double *ipc,double *ws,double *ms,double *fs);

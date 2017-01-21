@@ -7,10 +7,12 @@ extern Workload workload[MAXN];
 extern int workload_num;
 extern bool need_calc_ar;
 
+int *way;
 
-double T = 10000;//temperature
-double T_min = 1;//threshold
-double k = 6e-7;//constant
+struct best{
+    char allo[1000];
+    double value;
+} metrics[5];
 
 FILE *fin;
 double best, cur_miss_rate;
@@ -121,23 +123,79 @@ void display(){
     printf("\n");
 }
 
+void dfs(int i, int rest){
+    if(i == workload_num-1){
+        way[i] = rest;
+        //calculate cos
+        int index = 0;
+        for(int k = 0; k < workload_num; k++){
+            for(int v = 0; v< way[k]; v++){
+                workload[k].cos += (uint64_t)(1<<index);
+                index++;
+            }
+            workload[k].ways = count_1s(workload[k].cos);
+        }
+        char buffer[1000];
+        double _miss,_ipc,_ws,_ms,_fs;
+        predict_all(CPI,PENALTY,&_miss,&_ipc,&_ws,&_ms,&_fs);
+        //printf("%lf\n",_ms);
+        //for(int k = 0;k<5;k++){
+        //    printf("%lf ",metrics[k].value);
+        //    if(k==4)printf("\n");
+        //}
+        //printf("%lf %lf %lf %lf %lf\n",_miss,_ipc,_ws,_ms,_fs);
+        for(int k = 0; k<workload_num; k++) {
+            strcat(buffer,workload[k].name);
+            strcat(buffer," ");
+            strcat(buffer,ull216Str(workload[k].cos));
+            strcat(buffer," ");
+            //printf("%s %s ",workload[k].name, ull216Str(workload[k].cos));
+            //if(k==workload_num-1) printf(buffer,"\0");
+        }
+        //printf("%s\n",buffer);
+        if(_miss<metrics[0].value){
+            metrics[0].value = _miss;
+            strcpy(metrics[0].allo,buffer);
+        }
+        if(_ipc>metrics[1].value){
+            metrics[1].value = _ipc;
+            strcpy(metrics[1].allo,buffer);
+        }
+        if(_ws<metrics[2].value){
+            metrics[2].value = _ws;
+            strcpy(metrics[2].allo,buffer);
+        }
+        if(_ms<metrics[3].value){
+            metrics[3].value = _ms;
+            strcpy(metrics[3].allo,buffer);
+        }
+        if(_fs<metrics[4].value){
+            metrics[4].value = _fs;
+            strcpy(metrics[4].allo,buffer);
+        }
+        for(int k = 0; k < workload_num; k++) workload[k].cos = 0;
+        strcpy(buffer,"");
+    }
+    else
+    for(int j = 1; j <= rest-(workload_num-i-1); j++){
+        way[i] = j;
+        dfs(i+1,rest-j);
+    }
+}
+
+
 int main(int argv, char **argc) {
+
     char filename[100];
     char target[100];
-    srand(time(NULL));
-
-    workload_num = argv / 2 - 1;
-    need_calc_ar = false;
-    if (argc[1][0] == '1') {
-        need_calc_ar = true;
-    }
-
+    workload_num = argv-1;
+    way = new int[workload_num];
     for (int i = 0; i < workload_num; i++) {
         workload[i].occ = 0;
-        workload[i].name = strdup(argc[i * 2 + 2]);
-        workload[i].allocation = strdup(argc[i * 2 + 3]);
-        workload[i].cos = strtouint64(workload[i].allocation);
-        workload[i].ways = count_1s(workload[i].cos);
+        workload[i].name = strdup(argc[i + 1]);
+        //workload[i].allocation = strdup(argc[i * 2 + 2]);
+        //workload[i].cos = strtouint64(workload[i].allocation);
+        //workload[i].ways = count_1s(workload[i].cos);
         workload[i].miss_ratio = 0;
         strcpy(filename, workload[i].name);
         strcpy(target,"./mrc/");
@@ -150,52 +208,23 @@ int main(int argv, char **argc) {
         }
         // calc_mrc(i);
         get_mrc(i,fin);
-        if (need_calc_ar) {
-            workload[i].access_rate = workload[i].mrc[L2_CACHE_SIZE / BLOCK];
-        } else {
-            workload[i].access_rate = 1;
-        }
         fclose(fin);
     }
+    memset(metrics,0,sizeof(metrics));
+    metrics[0].value = 100; metrics[2].value = 100; metrics[3].value = 100; metrics[4].value = 100;
     get_accessrate();
     get_baseIPC();
-    best = predict_total_miss_rate();
-    cur_miss_rate = best;
-    int _count = 0;
-    while (T >= T_min) {
-        int target = rand() % workload_num;
-        int direction =
-            rand() %
-            4; // 0 right expand, 1 right reduce, 2 left expand, 3 left reduce
-        uint64_t pre_cos = modifyCos(target, direction);
-        for(int i = 0; i<workload_num; i++){
-            printf("%s %s ",workload[i].name, ull216Str(workload[i].cos));
-            if(i==workload_num-1) printf("\n");
-        }
-        printf("single miss_rate:\n");
-        for(int i = 0; i <workload_num; i++){
-            printf("%s: %lf ",workload[i].name, workload[i].miss_ratio);
-            if(i==workload_num-1) printf("\n");
-        }
-        display();
-        double tmp = predict_total_miss_rate();
-        printf("miss_rate: %lf\n",tmp);
-        if (tmp < best)
-            best = tmp;
-        double df = tmp - cur_miss_rate;
-        if ((df > 0) && ((rand() % 1000 / (float)1000) > exp(-df / (k * T)))) {
-            workload[target].cos = pre_cos;
-        } else {
-            cur_miss_rate = tmp;
-        }
-        if(_count==100){
-            T*=0.9;
-            _count = 0;
-        }
-        else _count++;
+    dfs(0,20);
+    //double tmp = predict_total_ipc(CPI,PENALTY);
+/*
+    for(int i = 0; i < workload_num; i++){
+	printf("%s: %lf\n", workload[i].name, workload[i].miss_ratio);
     }
-
-    printf("\n\nThe best: %lf\n", best);
-
+*/
+    //printf("%s missrate: %lf, ipc: %lf\n",workload[0].name,workload[0].miss_ratio,tmp);
+    printf("####################################################################\n");
+    for(int i = 0;i<5;i++)
+        printf("%s value%lf\n",metrics[i].allo,metrics[i].value);
+    delete []way;
     return 0;
 }

@@ -7,8 +7,6 @@ extern Workload workload[MAXN];
 extern int workload_num;
 extern bool need_calc_ar;
 
-double CPI = 1;
-double PENALTY = 800;
 double T = 10000;//temperature
 double T_min = 1;//threshold
 double k = 6e-7;//constant
@@ -160,6 +158,7 @@ int main(int argv, char **argc) {
         fclose(fin);
     }
     get_accessrate();
+    get_baseIPC();
 
     best_ipc = predict_total_ipc(CPI,PENALTY);
     cur_ipc = best_ipc;

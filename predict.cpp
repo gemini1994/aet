@@ -59,13 +59,14 @@ void o2m() {
         double occ = 0;
         for (int j = 0; j < segment_num; j++) {
             occ += occupancy[i][j];
+            //printf("%lf %lf\n",occ,workload[i].mrc[(int)occ]);
         }
         workload[i].occ = occ;
-	    if(occ>MAXS) occ=MAXS;
+        if(occ>=MAXS) occ=MAXS-1;
         // if(occ<0) printf("error\n");
         workload[i].miss_ratio = workload[i].mrc[(uint64_t)occ];
-        // printf("in o2m workload[%d] occ = %d, miss_ratio: %lf
-        // \n",i,occ,workload[i].miss_ratio);
+        workload[i].ipc = 1/(CPI+workload[i].miss_ratio*workload[i].access_rate*PENALTY);
+        //printf("in o2m workload[%d] , miss_ratio: %lf ipc: %lf\n",i,workload[i].miss_ratio,workload[i].ipc);
     }
 }
 
@@ -79,8 +80,7 @@ void m2o() {
              iter != segment[i].workload.end(); iter++) {
             int wid = *iter;
             miss_num[wid] =
-                (workload[wid].miss_ratio * workload[wid].access_rate *
-                 accesses * segment_ways / workload[wid].ways);
+                (workload[wid].miss_ratio * workload[wid].access_rate * workload[wid].ipc * accesses * segment_ways / workload[wid].ways);
             // printf("miss_num %lf\n",miss_num[wid]);
             miss_num_total += miss_num[wid];
             // printf("workload[%d].miss_ratio: %lf, workload[%d].access_rate:
@@ -161,8 +161,7 @@ void get_mrc(int i,FILE *fin) {
         workload[i].mrc[c] = pre;
 }
 
-
-double predict_total_ipc(double CPI, double PENALTY) {
+double predict_max_weighted_slowdown(double CPI, double PENALTY) {
     char filename[100];
     memset(segment, 0, sizeof(segment));
     memset(occupancy, 0, sizeof(occupancy));
@@ -170,6 +169,7 @@ double predict_total_ipc(double CPI, double PENALTY) {
     for(int i=0;i<workload_num;i++) workload[i].ways = count_1s(workload[i].cos);
     segmentation();
     init_occupancy();
+    //get_accessrate();
     // iteration process
     /*
     for (accesses = 1000; accesses >= 100; accesses -= 1) {
@@ -192,6 +192,137 @@ double predict_total_ipc(double CPI, double PENALTY) {
     }
     o2m();
 
+    double max_weighted_slowdown = 0;
+
+    for (int i = 0; i < workload_num; i++) {
+        double pre_ipc = 1/(CPI+workload[i].miss_ratio*workload[i].access_rate*PENALTY);
+	workload[i].weighted_slowdown = workload[i].base_ipc/pre_ipc;
+	if(workload[i].weighted_slowdown>max_weighted_slowdown) max_weighted_slowdown = workload[i].weighted_slowdown;
+    } // printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name,
+      // workload[i].allocation, workload[i].access_rate,
+      // workload[i].miss_ratio,workload[i].occ);
+    return max_weighted_slowdown;
+}
+
+double predict_fair_weighted_slowdown(double CPI, double PENALTY) {
+    char filename[100];
+    memset(segment, 0, sizeof(segment));
+    memset(occupancy, 0, sizeof(occupancy));
+
+    for(int i=0;i<workload_num;i++) workload[i].ways = count_1s(workload[i].cos);
+    segmentation();
+    init_occupancy();
+    //get_accessrate();
+    // iteration process
+    /*
+    for (accesses = 1000; accesses >= 100; accesses -= 1) {
+        o2m();
+        m2o();
+    }
+    */
+    accesses = 1000;
+    for (int i = 0; i < 8000; i++) {
+        o2m();
+        m2o();
+        /*
+        for( int j = 0; j< workload_num; j++ ){
+            if(j==0)printf("%d\n",(int)workload[j].occ);
+        }
+        */
+        // printf("\n");
+        if (i % 10 == 0)
+            accesses--;
+    }
+    o2m();
+
+    double fair_weighted_slowdown = 0;
+
+    for (int i = 0; i < workload_num; i++) {
+        double pre_ipc = 1/(CPI+workload[i].miss_ratio*workload[i].access_rate*PENALTY);
+        workload[i].weighted_slowdown = workload[i].base_ipc/pre_ipc;
+        fair_weighted_slowdown += 1/workload[i].weighted_slowdown;
+    } // printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name,
+      // workload[i].allocation, workload[i].access_rate,
+      // workload[i].miss_ratio,workload[i].occ);
+    fair_weighted_slowdown = workload_num/fair_weighted_slowdown;
+    return fair_weighted_slowdown;
+}
+
+double predict_weighted_slowdown(double CPI, double PENALTY) {
+    char filename[100];
+    memset(segment, 0, sizeof(segment));
+    memset(occupancy, 0, sizeof(occupancy));
+
+    for(int i=0;i<workload_num;i++) workload[i].ways = count_1s(workload[i].cos);
+    segmentation();
+    init_occupancy();
+    //get_accessrate();
+    // iteration process
+    /*
+    for (accesses = 1000; accesses >= 100; accesses -= 1) {
+        o2m();
+        m2o();
+    }
+    */
+    accesses = 1000;
+    for (int i = 0; i < 8000; i++) {
+        o2m();
+        m2o();
+        /*
+        for( int j = 0; j< workload_num; j++ ){
+            if(j==0)printf("%d\n",(int)workload[j].occ);
+        }
+        */
+        // printf("\n");
+        if (i % 10 == 0)
+            accesses--;
+    }
+    o2m();
+
+    double total_weighted_slowdown = 0;
+
+    for (int i = 0; i < workload_num; i++) {
+        double pre_ipc = 1/(CPI+workload[i].miss_ratio*workload[i].access_rate*PENALTY);
+	workload[i].weighted_slowdown = workload[i].base_ipc/pre_ipc;
+	total_weighted_slowdown += workload[i].weighted_slowdown;
+    } // printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name,
+      // workload[i].allocation, workload[i].access_rate,
+      // workload[i].miss_ratio,workload[i].occ);
+    return total_weighted_slowdown;
+}
+
+double predict_total_ipc(double CPI, double PENALTY) {
+    char filename[100];
+    memset(segment, 0, sizeof(segment));
+    memset(occupancy, 0, sizeof(occupancy));
+
+    for(int i=0;i<workload_num;i++) workload[i].ways = count_1s(workload[i].cos);
+    segmentation();
+    init_occupancy();
+    //get_accessrate();
+    // iteration process
+    /*
+    for (accesses = 1000; accesses >= 100; accesses -= 1) {
+        o2m();
+        m2o();
+    }
+    */
+    accesses = 1000;
+    for (int i = 0; i < 8000; i++) {
+        o2m();
+        m2o();
+    /*
+        for( int j = 0; j< workload_num; j++ ){
+            if(j==0)printf("%d\n",(int)workload[j].occ);
+        }
+    */
+        // printf("\n");
+        if (i % 10 == 0)
+            accesses--;
+    }
+
+    o2m();
+
     double pre_total_ipc = 0;
 
     for (int i = 0; i < workload_num; i++) {
@@ -210,6 +341,7 @@ double predict_total_miss_rate() {
     for(int i=0;i<workload_num;i++) workload[i].ways = count_1s(workload[i].cos);
     segmentation();
     init_occupancy();
+    //get_accessrate();
     // iteration process
     /*
     for (accesses = 1000; accesses >= 100; accesses -= 1) {
@@ -240,4 +372,70 @@ double predict_total_miss_rate() {
       // workload[i].allocation, workload[i].access_rate,
       // workload[i].miss_ratio,workload[i].occ);
     return pre_total_miss_ratio;
+}
+
+void predict_all(double CPI,double PENALTY,double *miss,double *ipc,double *ws,double *ms,double *fs) {
+    char filename[100];
+    memset(segment, 0, sizeof(segment));
+    memset(occupancy, 0, sizeof(occupancy));
+
+    for(int i=0;i<workload_num;i++) workload[i].ways = count_1s(workload[i].cos);
+    segmentation();
+    init_occupancy();
+    //get_accessrate();
+    // iteration process
+    /*
+    for (accesses = 1000; accesses >= 100; accesses -= 1) {
+        o2m();
+        m2o();
+    }
+    */
+    accesses = 1000;
+    for (int i = 0; i < 8000; i++) {
+        o2m();
+        m2o();
+        /*
+        for( int j = 0; j< workload_num; j++ ){
+            if(j==0)printf("%d\n",(int)workload[j].occ);
+        }
+        */
+        // printf("\n");
+        if (i % 10 == 0)
+            accesses--;
+    }
+    o2m();
+    double pre_total_miss_ratio = 0;
+    for (int i = 0; i < workload_num; i++) {
+        pre_total_miss_ratio += workload[i].miss_ratio*workload[i].access_rate;
+    }
+
+    double pre_total_ipc = 0;
+    for (int i = 0; i < workload_num; i++) {
+        pre_total_ipc += workload[i].ipc;
+    }
+
+    double total_weighted_slowdown = 0;
+    for (int i = 0; i < workload_num; i++) {
+	workload[i].weighted_slowdown = workload[i].base_ipc/workload[i].ipc;
+    //printf("%lf ",workload[i].weighted_slowdown);
+    //if(i==workload_num-1) printf("\n");
+    total_weighted_slowdown += workload[i].weighted_slowdown;
+    }
+
+    double max_weighted_slowdown = 0;
+    for (int i = 0; i < workload_num; i++) {
+    //printf("ws[%d]: %lf, max: %lf\n",i,workload[i].weighted_slowdown,max_weighted_slowdown);
+	if(workload[i].weighted_slowdown>max_weighted_slowdown) max_weighted_slowdown = workload[i].weighted_slowdown;
+    }
+
+    double fair_weighted_slowdown = 0;
+    for (int i = 0; i < workload_num; i++) {
+        fair_weighted_slowdown += 1/workload[i].weighted_slowdown;
+    }
+    fair_weighted_slowdown = workload_num/fair_weighted_slowdown;
+    *miss = pre_total_miss_ratio;
+    *ipc = pre_total_ipc;
+    *ws = total_weighted_slowdown;
+    *ms = max_weighted_slowdown;
+    *fs = fair_weighted_slowdown;
 }
