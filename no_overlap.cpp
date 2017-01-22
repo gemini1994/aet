@@ -199,7 +199,7 @@ int main(int argv, char **argc) {
         workload[i].miss_ratio = 0;
         strcpy(filename, workload[i].name);
         strcpy(target,"./mrc/");
-        strcat(filename, ".txt");
+        strcat(filename, "_real.txt");
         strcat(target,filename);
         fin = fopen(target, "rb");
         if(!fin){

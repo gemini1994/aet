@@ -111,9 +111,9 @@ void get_accessrate(){
     }
     char name[100];
     double access_rate;
-    double total = 0;
+    //double total = 0;
     while(fscanf(acc,"%s %lf",name,&access_rate)==2){
-        total += access_rate;
+        //total += access_rate;
         for(int i=0; i<workload_num; i++){
             if(strcmp(workload[i].name,name)==0){
                 workload[i].access_rate = access_rate;
@@ -121,9 +121,9 @@ void get_accessrate(){
             }
         }
     }
-    for(int i=0; i<workload_num;i++){
-        workload[i].access_rate /= total;
-    }
+    //for(int i=0; i<workload_num;i++){
+    //    workload[i].access_rate /= total;
+    //}
     fclose(acc);
 }
 
@@ -411,6 +411,8 @@ void predict_all(double CPI,double PENALTY,double *miss,double *ipc,double *ws,d
 
     double pre_total_ipc = 0;
     for (int i = 0; i < workload_num; i++) {
+        //printf("%lf ",workload[i].ipc);
+        //if(i==workload_num-1)printf("\n");
         pre_total_ipc += workload[i].ipc;
     }
 
