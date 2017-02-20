@@ -224,7 +224,7 @@ int main(int argv, char **argc) {
     //printf("%s missrate: %lf, ipc: %lf\n",workload[0].name,workload[0].miss_ratio,tmp);
     printf("####################################################################\n");
     for(int i = 0;i<5;i++)
-        printf("%s value%lf\n",metrics[i].allo,metrics[i].value);
+        printf("%s\n",metrics[i].allo);
     delete []way;
     return 0;
 }

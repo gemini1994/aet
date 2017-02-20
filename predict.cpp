@@ -288,7 +288,7 @@ double predict_weighted_slowdown(double CPI, double PENALTY) {
     } // printf("%15s\t%s\t%lf\t%lf\t%lf\n", workload[i].name,
       // workload[i].allocation, workload[i].access_rate,
       // workload[i].miss_ratio,workload[i].occ);
-    return total_weighted_slowdown;
+    return total_weighted_slowdown/workload_num;
 }
 
 double predict_total_ipc(double CPI, double PENALTY) {
@@ -423,6 +423,7 @@ void predict_all(double CPI,double PENALTY,double *miss,double *ipc,double *ws,d
     //if(i==workload_num-1) printf("\n");
     total_weighted_slowdown += workload[i].weighted_slowdown;
     }
+    total_weighted_slowdown /= workload_num;
 
     double max_weighted_slowdown = 0;
     for (int i = 0; i < workload_num; i++) {

@@ -79,7 +79,7 @@ int main(int argv, char **argc) {
         workload[i].miss_ratio = 0;
         strcpy(filename, workload[i].name);
         strcpy(target,"./mrc/");
-        strcat(filename, ".txt");
+        strcat(filename, "_real.txt");
         strcat(target,filename);
         fin = fopen(target, "rb");
         if(!fin){
@@ -94,11 +94,16 @@ int main(int argv, char **argc) {
     get_accessrate();
     get_baseIPC();
     double tmp = predict_total_ipc(CPI,PENALTY);
-/*
+    double miss_rate = 0;
+
     for(int i = 0; i < workload_num; i++){
-	printf("%s: %lf\n", workload[i].name, workload[i].miss_ratio);
+	miss_rate += workload[i].miss_ratio*workload[i].access_rate;
     }
-*/
-    printf("%s missrate: %lf, ipc: %lf\n",workload[0].name,workload[0].miss_ratio,tmp);
+    for(int i = 0; i < workload_num; i++){
+	if(i!=workload_num-1)printf("%lf ",workload[i].ipc);
+	else printf("%lf\n",workload[i].ipc);
+    }
+    printf("missrate: %lf,ipc: %lf\n",miss_rate,tmp);
+    //printf("%lf\n",workload[6].ipc);
     return 0;
 }

@@ -142,7 +142,7 @@ int main(int argv, char **argc) {
         workload[i].miss_ratio = 0;
         strcpy(filename, workload[i].name);
         strcpy(target,"./mrc/");
-        strcat(filename, ".txt");
+        strcat(filename, "_real.txt");
         strcat(target,filename);
         fin = fopen(target, "rb");
         if(!fin){
@@ -191,7 +191,7 @@ int main(int argv, char **argc) {
             cur_wslowdown = tmp;
         }
         if(_count==100){
-            T*=0.9;
+            T*=0.95;
             _count = 0;
         }
         else _count++;
