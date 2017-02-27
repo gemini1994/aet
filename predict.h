@@ -19,9 +19,8 @@ const uint64_t WAY_SIZE = (56320 << 10) / WAY / CACHE_LINE;
 const uint64_t L2_CACHE_SIZE = (256 << 10) / CACHE_LINE;
 const uint64_t BLOCK = 16; // 1 block = 16 cache lines
 const uint64_t MAXS = WAY_SIZE * WAY / BLOCK; // granularity is 1KB, (16 cache lines)
-
-const double CPI = 0.7;
-const double PENALTY = 1000;
+extern double CPI;
+extern double PENALTY;
 
 struct Segment {
     int begins, ends;

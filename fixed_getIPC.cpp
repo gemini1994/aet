@@ -103,7 +103,7 @@ int main(int argv, char **argc) {
 	if(i!=workload_num-1)printf("%lf ",workload[i].ipc);
 	else printf("%lf\n",workload[i].ipc);
     }
-    printf("missrate: %lf,ipc: %lf\n",miss_rate,tmp);
+    //printf("missrate: %lf,ipc: %lf\n",miss_rate,tmp);
     //printf("%lf\n",workload[6].ipc);
     return 0;
 }

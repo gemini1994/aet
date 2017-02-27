@@ -368,5 +368,6 @@ int main(int argv, char **argc) {
     // fout = fopen(filename,"w");
     // fclose(fin);
     // fclose(fout);
+printf("%d\n",strtouint64("0xfffff"));
     return 0;
 }

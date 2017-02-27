@@ -1,4 +1,4 @@
-astar 1.663556
+astar 1.063350
 GemsFDTD 1.326245
 leslie3d 1.561701
 povray 1.666667
