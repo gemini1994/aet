@@ -1,4 +1,4 @@
-#include<stdio.h>
+      #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
 #include<memory.h>
@@ -7,7 +7,7 @@ using namespace std;
 double CPI = 0.6;
 double PENALTY = 600;
 
-double total_missnum = 0;
+double avgMPKI = 0;
 double total_ipc = 0;
 double ws = 0;
 double ms = 0;
@@ -78,7 +78,7 @@ int main(int argv, char** argc){
             //miss[i] += (atof(m)==0?0:(1/atof(m)));
             //occ[i] += (atof(o)==0?0:(1/atof(o)));
             IPC[i] += atof(I);
-            miss[i] += atof(m);
+            miss[i] += atof(m)/(atof(I)*1600);
             //occ[i] = (occ[i]*(c-1) + atof(o))/c;
         }
         getline(&buffer,&len,fin);
@@ -90,16 +90,17 @@ int main(int argv, char** argc){
     }
     for(int i = 0; i < workload_num; i++){
         //printf("MISS%d: %lfk, IPC%d: %lf, \n",i,miss[i],i,ipc[i]);
-        total_missnum += miss[i];
+        avgMPKI += miss[i];
         total_ipc += IPC[i];
         ws += baseipc[i]/IPC[i];
         if(baseipc[i]/IPC[i] > ms) ms = baseipc[i]/IPC[i];
         fs += IPC[i]/baseipc[i];
     }
+    avgMPKI /= workload_num;
     fs = workload_num/fs;
     ws /= workload_num;
-    //printf("total_missnum: %lf, total_ipc: %lf, Weighted Slowdown: %lf, Max slowdown: %lf, Fair slowdown: %lf\n",total_missnum,total_ipc,ws,ms,fs);
-    printf("%lf %lf %lf %lf %lf\n",total_missnum,total_ipc,ws,ms,fs);
+    //printf("avgMPKI: %lf, total_ipc: %lf, Weighted Slowdown: %lf, Max slowdown: %lf, Fair slowdown: %lf\n",avgMPKI,total_ipc,ws,ms,fs);
+    printf("%lf %lf %lf %lf %lf\n",avgMPKI,total_ipc,ws,ms,fs);
     fclose(fin);
     delete miss;
     delete IPC;

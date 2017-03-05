@@ -11,8 +11,8 @@ int workload_num;
 double occupancy[MAXN][WAY+1];
 uint64_t accesses;
 bool need_calc_ar;
-double CPI = 0.4;
-double PENALTY = 100;
+double CPI = 0.58;
+double PENALTY = 50;
 
 void segmentation() {
     set<int> current;
