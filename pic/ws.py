@@ -5,11 +5,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-n_groups = 5
+n_groups = 15
 
-full = (1.415037,1.302205,1.335026,1.537177,1.817994)
-noover = (1.216415,1.294208,1.333964,1.474165,1.759627)
-our = (1.209769,1.290039,1.253458,1.470854,1.753704)
+data = []
+target = open("./ws.txt")
+for line in target:
+    a = [float(x) for x in line.strip().split()]
+    data.append(a)
+
+full1 = data[0]
+noover1 = data[1]
+our1 = data[2]
 
 #fig, ax = plt.subplots()
 
@@ -19,28 +25,28 @@ bar_width = 0.2
 opacity = 0.4
 #error_config = {'ecolor': '0.3'}
 
-rects1 = plt.bar(0.2+index, full, bar_width,
+rects1 = plt.bar(0.2+index, full1, bar_width,
                  alpha=opacity,
                  color='b',
                  label='full share')
 
-rects2 = plt.bar(0.2+index + bar_width, noover, bar_width,
+rects2 = plt.bar(0.2+index + bar_width, noover1, bar_width,
                  alpha=opacity,
                  color='r',
                  label='best non-overlap')
 
-rects3 = plt.bar(0.2+index + 2*bar_width, our, bar_width,
+rects3 = plt.bar(0.2+index + 2*bar_width, our1, bar_width,
                  alpha=opacity,
                  color='y',
                  label='our algorithm')
 
-plt.axis([0,5,1,2])
+plt.axis([0,15,1,2])
 plt.xlabel('Number of workload')
-plt.ylabel('Value')
-plt.title('Metric: weighted slowdown')
-plt.xticks(0.2+index + bar_width*1.5, ('4', '6', '8', '10', '12'))
+plt.ylabel('Average Weighted Slowdown')
+#plt.title('Metric: weighted slowdown')
+plt.xticks(0.2+index + bar_width*1.5, ('4', '6', '8', '10', '12','4', '6', '8', '10', '12','4', '6', '8', '10', '12'))
 #plt.legend()
-plt.legend(loc='upper left')
+plt.legend(loc='upper left',fontsize = 'small')
 
 plt.tight_layout()
 plt.show()
