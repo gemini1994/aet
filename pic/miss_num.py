@@ -24,7 +24,7 @@ our1 = data[2]
 index = np.arange(n_groups)
 bar_width = 0.2
 
-opacity = 0.4
+opacity = 1
 
 xticks = [2.5,7.5,12.5,17.5,22.5]
 xticks_minor = [0, 5, 10, 15, 20,25]
@@ -49,17 +49,17 @@ newax.grid(b=True,which = 'minor',linestyle ='--')
 
 t1 = ax.bar(0.2+index, full1, bar_width,
                  alpha=opacity,
-                 color='b',
+                 color='y',edgecolor = 'w',
                  label='full share')
 
 t2 = ax.bar(0.2+index + bar_width, noover1, bar_width,
                  alpha=opacity,
-                 color='r',
+                 color='k',edgecolor = 'w',
                  label='best non-overlap')
 
 t3 = ax.bar(0.2+index + 2*bar_width, our1, bar_width,
                  alpha=opacity,
-                 color='y',
+                 color='r',edgecolor = 'w',
                  label='our algorithm')
 
 ax.axis([0,25,5,30])
