@@ -19,7 +19,7 @@ ax_fs = plt.subplot(5,1,5)
 #newax_fs = ax_fs.twiny()
 #fig.subplots_adjust(bottom=0.20)
 
-n_groups = 20
+n_groups = 25
 #plt.figure(figsize=(30,10))
 
 data_miss = []
@@ -81,7 +81,7 @@ opacity = 1
 
 xticks_2 = 0.2+index + bar_width*1.5
 xticks_minor_2 = np.arange(n_groups-1)+1
-xlbls_2 = ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13','D14','D15','D16','D17','D18','D19','D20']
+xlbls_2 = ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13','D14','D15','D16','D17','D18','D19','D20','D21','D22','D23','D24','D25']
 #ax.set_xticks( xticks_minor, minor=True )
 ##############################################
 #newax.set_frame_on(True)
@@ -109,7 +109,7 @@ t3 = ax.bar(0.2+index + 2*bar_width, our_miss, bar_width,
                  color='r',edgecolor = 'w',
                  label='our algorithm')
 
-ax.axis([0,20,5,30])
+ax.axis([0,25,5,30])
 #newax.axis([0,25,5,30])
 ax.set_xlabel('Group ID')
 #newax.set_xlabel('The number of benchmarks')
@@ -147,7 +147,7 @@ t3 = ax_ipc.bar(0.2+index + 2*bar_width, our_ipc, bar_width,
                  color='r',edgecolor = 'w',
                  label='our algorithm')
 
-ax_ipc.axis([0,20,10,18])
+ax_ipc.axis([0,25,10,18])
 #newax_ipc.axis([0,25,4,18])
 ax_ipc.set_xlabel('Group ID')
 #newax_ipc.set_xlabel('The number of benchmarks')
@@ -185,7 +185,7 @@ t3 = ax_ws.bar(0.2+index + 2*bar_width, our_ws, bar_width,
                  color='r',edgecolor = 'w',
                  label='our algorithm')
 
-ax_ws.axis([0,20,1,1.9])
+ax_ws.axis([0,25,1,1.9])
 #newax_ws.axis([0,25,1,1.9])
 ax_ws.set_xlabel('Group ID')
 #newax_ws.set_xlabel('The number of benchmarks')
@@ -222,7 +222,7 @@ t3 = ax_ms.bar(0.2+index + 2*bar_width, our_ms, bar_width,
                  color='r',edgecolor = 'w',
                  label='our algorithm')
 
-ax_ms.axis([0,20,1,4.5])
+ax_ms.axis([0,25,1,4.5])
 #newax_ms.axis([0,25,1,4.5])
 ax_ms.set_xlabel('Group ID')
 #newax_ms.set_xlabel('The number of benchmarks')
@@ -259,7 +259,7 @@ t3 = ax_fs.bar(0.2+index + 2*bar_width, our_fs, bar_width,
                  color='r',edgecolor = 'w',
                  label='our algorithm')
 
-ax_fs.axis([0,20,1,1.9])
+ax_fs.axis([0,25,1,1.9])
 #newax_fs.axis([0,25,1,1.9])
 ax_fs.set_xlabel('Group ID')
 #newax_fs.set_xlabel('The number of benchmarks')
