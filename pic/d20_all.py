@@ -120,7 +120,8 @@ ax.set_xticklabels(xlbls_2)
 #ax.tick_params( axis='x', direction='out',length = 18,which ='minor' )
 #newax.tick_params( axis='x', direction='in',length = 40,which ='minor' )
 #newax.tick_params( axis='x', direction='in',length = 0,which ='major' )
-ax.legend(loc='upper left',fontsize='large')
+ax.legend(loc='upper center',fontsize='large',bbox_to_anchor=(0.5, 1.05),
+          fancybox=True, shadow=True, ncol=3)
 ##############################################
 #newax_ipc.set_frame_on(True)
 #newax_ipc.patch.set_visible(False)
@@ -275,5 +276,6 @@ ax_fs.set_xticklabels(xlbls_2)
 
 plt.tight_layout()
 plt.savefig('d20_all.pdf')
+ax_ipc.savefig('tmp.pdf')
 #plt.show()
 
