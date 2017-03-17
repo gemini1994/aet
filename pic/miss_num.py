@@ -4,7 +4,7 @@ Bar chart demo with pairs of bars grouped for easy comparison.
 import numpy as np
 import matplotlib.pyplot as plt
 
-fig, ax = plt.subplots(figsize=(40,20))
+fig, ax = plt.subplots(figsize=(40,25))
 #newax = ax.twiny()
 fig.subplots_adjust(bottom=0.20)
 
@@ -54,12 +54,12 @@ ax.set_xticks(xticks_minor,minor = True)
 t1 = ax.bar(0.2+index, full1, bar_width,
                  alpha=opacity,
                  color='y',edgecolor = 'w',
-                 label='full share')
+                 label='Full share')
 
 t2 = ax.bar(0.2+index + bar_width, noover1, bar_width,
                  alpha=opacity,
                  color='k',edgecolor = 'w',
-                 label='best non-overlap')
+                 label='Non-overlap')
 
 t3 = ax.bar(0.2+index + 2*bar_width, our1, bar_width,
                  alpha=opacity,
@@ -68,19 +68,19 @@ t3 = ax.bar(0.2+index + 2*bar_width, our1, bar_width,
 
 ax.axis([0,6,10,18])
 #newax.axis([0,25,5,30])
-ax.set_xlabel('Core Count',size = 80)
+ax.set_xlabel('Core count',size = 150)
 #newax.set_xlabel('The number of benchmarks')
 #ax.set_ylabel('Average MPKI',size = 35)
 #plt.title('Metric: miss num')
 ax.set_xticks(xticks_2)
-ax.set_xticklabels(xlbls_2,size = 75)
+ax.set_xticklabels(xlbls_2,size = 120)
 #ax.set_xticks(xticks_minor_2,minor = True)
 #ax.tick_params( axis='x', direction='out',length = 18,which ='minor' )
 #newax.tick_params( axis='x', direction='in',length = 40,which ='minor' )
 #plt.legend()
-plt.legend(loc='upper center',fontsize=75,bbox_to_anchor=(0.5, 1.05),
+plt.legend(loc='upper center',fontsize=90,bbox_to_anchor=(0.5, 1.05),
           fancybox=True, shadow=True, ncol=3)
-plt.yticks(size = 75)
+plt.yticks(size = 120)
 plt.tight_layout()
 plt.savefig('mpki.pdf')
 #plt.show()

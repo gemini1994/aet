@@ -34,7 +34,7 @@ xticks_2 = 0.2+index + bar_width*1.5
 xticks_minor_2 = np.arange(24)+1
 #xlbls_2 = ['20%', '40%', '50%', '60%', '80%','20%', '40%', '50%', '60%', '80%','20%', '40%', '50%', '60%', '80%','20%', '40%', '50%', '60%', '80%','20%', '40%', '50%', '60%', '80%']
 #xlbls_2 = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5','H1', 'H2', 'H3', 'H4', 'H5','O1', 'O2', 'O3', 'O4', 'O5','T1', 'T2', 'T3', 'T4', 'T5','P1', 'P2', 'P3', 'P4', 'P5']
-xlbls_2 = ['401.bzip2', '403.gcc', '429.mcf', '436.cactus', '465.tonto', '410.bwaves', '434.zeusmp', '437.leslie3d','459.GemsFDTD','462.libquantum']
+xlbls_2 = ['bzip2', 'gcc', 'mcf', 'cactus', 'tonto', 'bwaves', 'zeusmp', 'leslie3d','GemsFDTD','libquantum']
 #ax.set_xticks( xticks_minor, minor=True )
 #newax.set_frame_on(True)
 #newax.patch.set_visible(False)
@@ -64,7 +64,7 @@ t2 = ax.bar(0.2+index + bar_width, ipc, bar_width,
 t3 = ax.bar(0.2+index + 2*bar_width, fs, bar_width,
                  alpha=opacity,
                  color='m',edgecolor = 'w',
-                 label='FairSlowdown')
+                 label='Fair slowdown')
 
 ax.axis([0,10,0,30000])
 #newax.axis([0,25,5,30])

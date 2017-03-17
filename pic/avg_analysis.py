@@ -36,17 +36,17 @@ opacity = 1
 xticks_1 = 0.2+index_sum + bar_width*1.5
 #xticks_2 = 2+0.2+index2 + bar_width*1.5
 
-xlbls_1 = ['MPKI','Throughput','Average Slowdown','Fair Slowdown','Max Slowdown']
-xlbls_2 = ['Weighted Slowdown','Max Slowdown','Fair Slowdown']
+xlbls_1 = ['Average MPKI','Throughput','Average slowdown','Fair slowdown','Max slowdown']
+xlbls_2 = ['Weighted slowdown','Max slowdown','Fair slowdown']
 t1 = ax1.bar(0.2+index, full1, bar_width,
                  alpha=opacity,
                  color='y',edgecolor = 'w',
-                 label='full share')
+                 label='Full share')
 
 t2 = ax1.bar(0.2+index + bar_width, noover1, bar_width,
                  alpha=opacity,
                  color='k',edgecolor = 'w',
-                 label='best non-overlap')
+                 label='Non-overlap')
 
 t3 = ax1.bar(0.2+index + 2*bar_width, our1, bar_width,
                  alpha=opacity,
@@ -56,12 +56,12 @@ t3 = ax1.bar(0.2+index + 2*bar_width, our1, bar_width,
 t4 = ax2.bar(0.2+index2+2, full2, bar_width,
                  alpha=opacity,
                  color='y',edgecolor = 'w',
-                 label='full share')
+                 label='Full share')
 
 t5 = ax2.bar(0.2+index2+2 + bar_width, noover2, bar_width,
                  alpha=opacity,
                  color='k',edgecolor = 'w',
-                 label='best non-overlap')
+                 label='Non-overlap')
 
 t6 = ax2.bar(0.2+index2+2 + 2*bar_width, our2, bar_width,
                  alpha=opacity,
@@ -70,7 +70,7 @@ t6 = ax2.bar(0.2+index2+2 + 2*bar_width, our2, bar_width,
 
 ax1.axis([0,5,11,16])
 ax2.axis([0,5,1,2.5])
-ax1.set_xlabel('Metrics',size =70)
+ax1.set_xlabel('Metrics',size =75)
 #ax1.set_ylabel('MPKI/IPC',size = 70)
 #ax1.set_yticklabels([4,6,8,10,12,14,16,18,20],size = 20)
 #ax1.set_yticks(size = 20)
@@ -78,17 +78,17 @@ ax1.set_xlabel('Metrics',size =70)
 #ax2.set_ylabel('Slowdown',size = 70)
 ax1.set_xticks(xticks_1)
 ax1.set_xticks([2],minor=True)
-ax1.set_xticklabels(xlbls_1,size = 55)
+ax1.set_xticklabels(xlbls_1,size = 60)
 #ax2.set_xticks(xticks_2)
 #ax2.set_xticklabels(xlbls_2,size = 10)
 #ax2.set_yticklabels(size = 20)
 ax1.grid(b=True,which = 'minor',linestyle ='--',color = 'k',linewidth = 20)
 #ax1.legend(loc='upper left',fontsize = '20')
 ax1.set_yticks([11,12,13,14,15,16])
-ax1.set_yticklabels(['11','12','13','14','15','16'],size = 60)
+ax1.set_yticklabels(['11','12','13','14','15','16'],size = 65)
 ax2.set_yticks([1,1.2,1.4,1.6,1.8,2.0,2.2,2.4])
-ax2.set_yticklabels(['1','1.2','1.4','1.6','1.8','2.0','2.2','2.4'],size =60)
-plt.legend(loc='upper center',fontsize=60,bbox_to_anchor=(0.5, 1.05),
+ax2.set_yticklabels(['1','1.2','1.4','1.6','1.8','2.0','2.2','2.4'],size =65)
+plt.legend(loc='upper center',fontsize=70,bbox_to_anchor=(0.5, 1.05),
           fancybox=True, shadow=True, ncol=3)
 #plt.yticks(size = 20)
 

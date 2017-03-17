@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import numpy as np
 import matplotlib.pyplot as plt
-plt.figure(figsize=(40,30))
+plt.figure(figsize=(40,40))
 n_groups = 10
 index = np.arange(n_groups)
 data = []
@@ -22,9 +22,9 @@ for line in target:
 #fs = (2.890952,1.285745,1.797710,1.368337,2.845843,2.328545,1.588748,1.229131,1.017742,2.956141)
 
 plt.axis([-0.5,9.5,0,2.4])
-plt.plot(index,data[3],'cv-.',label = 'Full share',markersize = 25,markeredgecolor = 'w',linewidth = 8);
-plt.plot(index,data[1],'ko-',label = 'Throughput',markersize = 25,markeredgecolor = 'w',linewidth = 8);
-plt.plot(index,data[2],'ms--', label = 'Fair Slowdown',markersize = 25,markeredgecolor = 'w',linewidth = 8);
+plt.plot(index,data[3],'cD-',label = 'Full share',markersize = 55,markeredgecolor = 'w',linewidth = 16);
+plt.plot(index,data[1],'ko:',label = 'Throughput',markersize = 55,markeredgecolor = 'w',linewidth = 16);
+plt.plot(index,data[2],'ms-.', label = 'Fair slowdown',markersize = 55,markeredgecolor = 'w',linewidth = 16);
 
 
 for pt in points:
@@ -36,13 +36,13 @@ for pt in points:
 #plt.plot(index,data[5],'k*-',label = 'Full contention');
 
 #plt.xlabel("Benchmarks",size = 60);
-plt.ylabel("IPC",size = 60);
+plt.ylabel("IPC",size = 80);
 #plt.xticks(index, ('omnetpp', 'leslie3d', 'bwaves', 'zeusmp','povray','libquantum','milc','gobmk','hmmer','sjeng'))
-plt.xticks(index,data[0],size = 55,rotation = 50)
-plt.yticks(size = 55)
+plt.xticks(index,data[0],size = 75,rotation = 50)
+plt.yticks(size = 75)
 #plt.legend(loc='upper center',fontsize=55,bbox_to_anchor=(0.5, 1.07),
 #          fancybox=True, shadow=True, ncol=3)
-plt.legend(loc='upper left',fontsize=55)
+plt.legend(loc='upper left',fontsize=80)
 plt.tight_layout()
 plt.savefig('case_ipc.pdf')
-plt.show()
+#plt.show()

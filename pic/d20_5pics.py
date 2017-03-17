@@ -47,12 +47,12 @@ xlbls_2 = ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13',
 t1 = ax.bar(0.2+index, full_miss, bar_width,
                  alpha=opacity,
                  color='y',edgecolor = 'w',
-                 label='full share')
+                 label='Full share')
 
 t2 = ax.bar(0.2+index + bar_width, noover_miss, bar_width,
                  alpha=opacity,
                  color='k',edgecolor = 'w',
-                 label='non-overlap')
+                 label='Non-overlap')
 
 t3 = ax.bar(0.2+index + 2*bar_width, our_miss, bar_width,
                  alpha=opacity,
@@ -65,13 +65,13 @@ ax.axis([0,25,5,25])
 #newax.set_xlabel('The number of benchmarks')
 #ax.set_ylabel('Average MPKI',size=60)
 ax.set_xticks(xticks_2)
-plt.yticks(size = 60)
-ax.set_xticklabels(xlbls_2,size =70)
+plt.yticks(size = 100)
+ax.set_xticklabels(xlbls_2,size=100)
 #ax.set_xticks(xticks_minor_2,minor = True)
 #ax.tick_params( axis='x', direction='out',length = 18,which ='minor' )
 #newax.tick_params( axis='x', direction='in',length = 40,which ='minor' )
 #newax.tick_params( axis='x', direction='in',length = 0,which ='major' )
-ax.legend(loc='upper center',fontsize=75,bbox_to_anchor=((0.5, 1.09)),
+ax.legend(loc='upper center',fontsize=95,bbox_to_anchor=((0.5, 1.09)),
           fancybox=True, shadow=True, ncol=3)
 plt.tight_layout()
 plt.savefig('d20_miss.pdf')
@@ -117,12 +117,12 @@ xlbls_2 = ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13',
 t1 = ax.bar(0.2+index, full_ipc, bar_width,
                  alpha=opacity,
                  color='y',edgecolor = 'w',
-                 label='full share')
+                 label='Full share')
 
 t2 = ax.bar(0.2+index + bar_width, noover_ipc, bar_width,
                  alpha=opacity,
                  color='k',edgecolor = 'w',
-                 label='non-overlap')
+                 label='Non-overlap')
 
 t3 = ax.bar(0.2+index + 2*bar_width, our_ipc, bar_width,
                  alpha=opacity,
@@ -136,9 +136,9 @@ ax.axis([0,25,10,18])
 #ax.set_ylabel('IPC',size=60)
 ax.yaxis.set_major_locator(yloc)
 ax.set_xticks(xticks_2)
-plt.yticks(size = 60)
-ax.set_xticklabels(xlbls_2,size=70)
-ax.legend(loc='upper center',fontsize=75,bbox_to_anchor=((0.5, 1.09)),
+plt.yticks(size = 100)
+ax.set_xticklabels(xlbls_2,size=100)
+ax.legend(loc='upper center',fontsize=95,bbox_to_anchor=((0.5, 1.09)),
           fancybox=True, shadow=True, ncol=3)
 plt.tight_layout()
 plt.savefig('d20_ipc.pdf')
@@ -188,12 +188,12 @@ xlbls_2 = ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13',
 t1 = ax.bar(0.2+index, full_ws, bar_width,
                  alpha=opacity,
                  color='y',edgecolor = 'w',
-                 label='full share')
+                 label='Full share')
 
 t2 = ax.bar(0.2+index + bar_width, noover_ws, bar_width,
                  alpha=opacity,
                  color='k',edgecolor = 'w',
-                 label='non-overlap')
+                 label='Non-overlap')
 
 t3 = ax.bar(0.2+index + 2*bar_width, our_ws, bar_width,
                  alpha=opacity,
@@ -206,9 +206,9 @@ ax.axis([0,25,1,1.7])
 #newax.set_xlabel('The number of benchmarks')
 #ax.set_ylabel('Average Weighted Slowdown',size=60)
 ax.set_xticks(xticks_2)
-plt.yticks(size = 60)
-ax.set_xticklabels(xlbls_2,size=70)
-ax.legend(loc='upper center',fontsize=75,bbox_to_anchor=((0.5, 1.09)),
+plt.yticks(size = 100)
+ax.set_xticklabels(xlbls_2,size=100)
+ax.legend(loc='upper center',fontsize=95,bbox_to_anchor=((0.5, 1.09)),
           fancybox=True, shadow=True, ncol=3)
 plt.tight_layout()
 plt.savefig('d20_ws.pdf')
@@ -258,12 +258,12 @@ xlbls_2 = ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13',
 t1 = ax.bar(0.2+index, full_ms, bar_width,
                  alpha=opacity,
                  color='y',edgecolor = 'w',
-                 label='full share')
+                 label='Full share')
 
 t2 = ax.bar(0.2+index + bar_width, noover_ms, bar_width,
                  alpha=opacity,
                  color='k',edgecolor = 'w',
-                 label='non-overlap')
+                 label='Non-overlap')
 
 t3 = ax.bar(0.2+index + 2*bar_width, our_ms, bar_width,
                  alpha=opacity,
@@ -276,9 +276,9 @@ ax.axis([0,25,1,4])
 #newax.set_xlabel('The number of benchmarks')
 #ax.set_ylabel('Max Weighted Slowdown',size=60)
 ax.set_xticks(xticks_2)
-plt.yticks(size = 60)
-ax.set_xticklabels(xlbls_2,size=70)
-ax.legend(loc='upper center',fontsize=75,bbox_to_anchor=((0.5, 1.09)),
+plt.yticks(size = 100)
+ax.set_xticklabels(xlbls_2,size=100)
+ax.legend(loc='upper center',fontsize=95,bbox_to_anchor=((0.5, 1.09)),
           fancybox=True, shadow=True, ncol=3)
 plt.tight_layout()
 plt.savefig('d20_ms.pdf')
@@ -328,12 +328,12 @@ xlbls_2 = ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13',
 t1 = ax.bar(0.2+index, full_fs, bar_width,
                  alpha=opacity,
                  color='y',edgecolor = 'w',
-                 label='full share')
+                 label='Full share')
 
 t2 = ax.bar(0.2+index + bar_width, noover_fs, bar_width,
                  alpha=opacity,
                  color='k',edgecolor = 'w',
-                 label='non-overlap')
+                 label='Non-overlap')
 
 t3 = ax.bar(0.2+index + 2*bar_width, our_fs, bar_width,
                  alpha=opacity,
@@ -346,14 +346,14 @@ ax.axis([0,25,1,1.6])
 #newax.set_xlabel('The number of benchmarks')
 #ax.set_ylabel('Fair Weighted Slowdown',size =60)
 ax.set_xticks(xticks_2)
-plt.yticks(size = 60)
-ax.set_xticklabels(xlbls_2,size=70)
+plt.yticks(size = 100)
+ax.set_xticklabels(xlbls_2,size=100)
 #ax.set_xticks(xticks_minor_2,minor = True)
 #ax.tick_params( axis='x', direction='out',length = 18,which ='minor' )
 #newax.tick_params( axis='x', direction='in',length = 40,which ='minor' )
 #newax.tick_params( axis='x', direction='in',length = 0,which ='major' )
 
-ax.legend(loc='upper center',fontsize=75,bbox_to_anchor=((0.5, 1.09)),
+ax.legend(loc='upper center',fontsize=95,bbox_to_anchor=((0.5, 1.09)),
           fancybox=True, shadow=True, ncol=3)
 plt.tight_layout()
 plt.savefig('d20_fs.pdf')
